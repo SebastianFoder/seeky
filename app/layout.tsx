@@ -1,8 +1,7 @@
-import HeaderAuth from "@/components/header-auth";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ThemeProvider } from "next-themes";
-import Link from "next/link";
 import "./globals.css";
+import Header from "./header";
+import Footer from "./footer";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -28,19 +27,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-              <nav>
-                <div>
-                  <ThemeSwitcher />
-                  <HeaderAuth />
-                </div>
-              </nav>
-              <div>
-                {children}
-              </div>
-
-              <footer>
-                <Link href="/">Home</Link>
-              </footer>
+          <Header />
+          <main>{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

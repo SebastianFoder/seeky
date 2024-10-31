@@ -15,8 +15,8 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
         </Link>
       </p>
       <div>
-        <label htmlFor="email">Email</label>
-        <input name="email" placeholder="you@example.com" required />
+        <label htmlFor="username">Username</label>
+        <input name="username" placeholder="username" required />
         <div>
           <label htmlFor="password">Password</label>
           <Link

@@ -1,0 +1,94 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+
+:root {
+    --primary: hsl(22, 96%, 48%);
+    --secondary: hsl(346, 100%, 5%);
+    --light-primary: hsl(28, 96%, 48%);
+    --dark-primary: hsl(16, 96%, 48%);
+    --cta: hsl(0, 91%, 34%);
+    --light-secondary: hsl(346, 60%, 15%);
+    --dark-secondary: hsl(346, 100%, 1%);
+}
+
+body{
+    background-color: var(--secondary);
+    min-height: 100lvh;
+    font-family: "Lexend", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+}
+
+header{
+    height: 5rem;
+    background-color: var(--light-secondary);
+}
+
+header nav{
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+header nav ul{
+    flex-grow: 1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Theme Switcher styles using only existing color variables */
+.theme-switcher {
+    position: relative;
+    display: inline-block;
+}
+
+/* Button that shows the current theme icon */
+.theme-switcher-button {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: var(--light-secondary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Icon inside the buttons */
+.theme-switcher-icon {
+    margin-right: 8px;
+    color: var(--light-primary);
+}
+
+/* Dropdown menu */
+.theme-switcher-dropdown {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 8px;
+    width: 120px;
+    background-color: var(--secondary);
+    border: 1px solid var(--light-secondary);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px var(--dark-secondary);
+    z-index: 10;
+}
+
+/* Each item in the dropdown */
+.theme-switcher-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--light-primary);
+}
+
+/* Hover effect for dropdown items */
+.theme-switcher-item:hover {
+    background-color: var(--light-secondary);
+}

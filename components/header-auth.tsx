@@ -9,9 +9,11 @@ export default async function AuthButton() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const greeting = user?.user_metadata.name ?? user?.email;
+
   return user ? (
-    <div className="flex items-center gap-4">
-      Hey, {user.email}!
+    <div>
+      Hey, {greeting}!
       <form action={signOutAction}>
         <button type="submit">
           Sign out
@@ -19,7 +21,7 @@ export default async function AuthButton() {
       </form>
     </div>
   ) : (
-    <div className="flex gap-2">
+    <div>
       <button>
         <Link href="/sign-in">Sign in</Link>
       </button>
