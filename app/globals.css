@@ -1,5 +1,4 @@
-@import url('https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+@import "./css/meyer-reset.css";
 @import "./css/btn.css";
 @import "./css/header.css";
 @import "./css/theme-switcher.css";
@@ -8,6 +7,7 @@
 @import "./css/badge.css";
 @import "./css/video-card-skeleton.css";
 @import "./css/video-list.css";
+@import "./css/video-upload.css";
 :root {
     --primary: hsl(22, 96%, 48%);
     --secondary: hsl(346, 100%, 5%);
@@ -43,7 +43,6 @@ body{
     flex-direction: column;
     background-color: var(--secondary);
     min-height: 200lvh;
-    font-family: "Lexend", sans-serif;
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: normal;

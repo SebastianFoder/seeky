@@ -3,6 +3,12 @@ import "./globals.css";
 import Header from "./header";
 import Footer from "./footer";
 
+import { Lexend } from 'next/font/google';
+
+const lexend = Lexend({
+  subsets: ['latin']
+});
+
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
@@ -20,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={lexend.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

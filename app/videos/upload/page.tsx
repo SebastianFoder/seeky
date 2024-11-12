@@ -1,4 +1,4 @@
-import VideoUpload from "@/components/upload";
+import VideoUpload from "@/components/video-upload";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
