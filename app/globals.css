@@ -1,6 +1,13 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-
+@import "./css/btn.css";
+@import "./css/header.css";
+@import "./css/theme-switcher.css";
+@import "./css/footer.css";
+@import "./css/video-card.css";
+@import "./css/badge.css";
+@import "./css/video-card-skeleton.css";
+@import "./css/video-list.css";
 :root {
     --primary: hsl(22, 96%, 48%);
     --secondary: hsl(346, 100%, 5%);
@@ -9,86 +16,132 @@
     --cta: hsl(0, 91%, 34%);
     --light-secondary: hsl(346, 60%, 15%);
     --dark-secondary: hsl(346, 100%, 1%);
+    --white: hsl(0, 90%, 95%);
+
+    /* Typography Scale */
+    --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);    /* 12px - 14px */
+    --text-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);      /* 14px - 16px */
+    --text-base: clamp(1rem, 0.9375rem + 0.3125vw, 1.125rem); /* 16px - 18px */
+    --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);     /* 18px - 20px */
+    --text-xl: clamp(1.25rem, 1.125rem + 0.625vw, 1.5rem);   /* 20px - 24px */
+    --text-2xl: clamp(1.5rem, 1.375rem + 0.625vw, 1.875rem); /* 24px - 30px */
+    --text-3xl: clamp(1.875rem, 1.75rem + 0.625vw, 2.25rem); /* 30px - 36px */
+    --text-4xl: clamp(2.25rem, 2rem + 1.25vw, 3rem);         /* 36px - 48px */
+    
+    /* Line heights */
+    --leading-tight: 1.2;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    
+    /* Spacing */
+    --spacing-text: clamp(1.5rem, 2.5vw, 2rem);
 }
 
 body{
+    display: flex;
+    flex-direction: column;
     background-color: var(--secondary);
-    min-height: 100lvh;
+    min-height: 200lvh;
     font-family: "Lexend", sans-serif;
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: normal;
+    color: var(--white);
+    line-height: var(--leading-normal);
+    font-size: var(--text-base);
 }
-
-header{
-    height: 5rem;
-    background-color: var(--light-secondary);
-}
-
-header nav{
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-header nav ul{
+main{
     flex-grow: 1;
-    padding: 0.5rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 2rem 10%;
 }
 
-/* Theme Switcher styles using only existing color variables */
-.theme-switcher {
-    position: relative;
-    display: inline-block;
+@media (max-width: 768px) {
+    main{
+        padding: 2rem 5%;
+    }
 }
 
-/* Button that shows the current theme icon */
-.theme-switcher-button {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background-color: var(--light-secondary);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-/* Icon inside the buttons */
-.theme-switcher-icon {
-    margin-right: 8px;
+/* Heading Styles */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    margin-bottom: var(--spacing-text);
     color: var(--light-primary);
 }
 
-/* Dropdown menu */
-.theme-switcher-dropdown {
-    position: absolute;
-    left: 0;
-    top: 100%;
-    margin-top: 8px;
-    width: 120px;
-    background-color: var(--secondary);
-    border: 1px solid var(--light-secondary);
-    border-radius: 4px;
-    box-shadow: 0 4px 6px var(--dark-secondary);
-    z-index: 10;
+h1 {
+    font-size: var(--text-4xl);
+    letter-spacing: -0.02em;
 }
 
-/* Each item in the dropdown */
-.theme-switcher-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--light-primary);
+h2 {
+    font-size: var(--text-3xl);
+    letter-spacing: -0.01em;
 }
 
-/* Hover effect for dropdown items */
-.theme-switcher-item:hover {
-    background-color: var(--light-secondary);
+h3 {
+    font-size: var(--text-2xl);
 }
+
+h4 {
+    font-size: var(--text-xl);
+}
+
+h5 {
+    font-size: var(--text-lg);
+}
+
+h6 {
+    font-size: var(--text-base);
+    font-weight: 600;
+}
+
+/* Paragraph Styles */
+p {
+    margin-bottom: var(--spacing-text);
+    max-width: 70ch; /* Optimal reading length */
+}
+
+/* Small text */
+small {
+    font-size: var(--text-sm);
+}
+
+/* Large text */
+.lead {
+    font-size: var(--text-xl);
+    line-height: var(--leading-relaxed);
+}
+
+/* Text containers */
+.text-container {
+    max-width: 65ch;
+    margin: 0 auto;
+}
+
+.text-container > * + * {
+    margin-top: var(--spacing-text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    :root {
+        --spacing-text: 1.25rem;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        margin-bottom: calc(var(--spacing-text) * 0.75);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --spacing-text: 1rem;
+    }
+    
+    .text-container {
+        max-width: 100%;
+    }
+}
+

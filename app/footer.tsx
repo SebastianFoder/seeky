@@ -1,3 +1,9 @@
+import { ThemeSwitcher } from "@/components/theme-switcher";
+
 export default function Footer() {
-  return <footer>Footer</footer>;
+  return (
+    <footer>
+      <ThemeSwitcher />
+    </footer>
+  );
 }

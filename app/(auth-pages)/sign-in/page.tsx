@@ -16,7 +16,7 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
       </p>
       <div>
         <label htmlFor="username">Username</label>
-        <input name="username" placeholder="username" required />
+        <input name="username" placeholder="Username" required />
         <div>
           <label htmlFor="password">Password</label>
           <Link
@@ -28,7 +28,7 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
         <input
           type="password"
           name="password"
-          placeholder="Your password"
+          placeholder="Password"
           required
         />
         <SubmitButton pendingText="Signing In..." formAction={signInAction}>

@@ -1,0 +1,52 @@
+header{
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    height: 5rem;
+}
+
+header nav{
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+header nav ul{
+    flex-grow: 1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header nav .auth-button-container{
+    display: flex;
+    gap: 1rem;    
+}
+
+/* Apply box-shadow to buttons without affecting their hover styles */
+header nav .shadow{
+    box-shadow: 0 calc(var(--scroll-progress) * 4px) 
+                calc(var(--scroll-progress) * 8px) 
+                rgba(0, 0, 0, calc(var(--scroll-progress) * 0.3));
+    transition: box-shadow 0.3s ease, transform 0.1s ease-in-out, background-color 0.3s ease;
+}
+
+header nav .logo a{
+    text-decoration: none;
+    color: var(--dark-primary);
+    font-size: 2.5rem;
+    font-weight: bold;
+    opacity: calc(1 - var(--scroll-progress));
+    transform: translateY(calc(var(--scroll-progress) * -100%));
+    transition: transform 0.2s ease-in-out, opacity 0.3s ease;
+}
+
+header nav .logo a:hover{
+    color: var(--primary);
+}
+
+header nav .logo h1{
+    margin: 0;
+}

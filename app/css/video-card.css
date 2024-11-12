@@ -1,0 +1,40 @@
+.video-card {
+    border: 1px solid var(--light-secondary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--secondary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.video-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.video-card h3 {
+    margin-top: 0.5rem;
+    font-size: var(--text-xl);
+    color: var(--light-primary);
+}
+
+.video-card p {
+    margin: 0.5rem 0;
+    color: var(--white);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.tag {
+    background-color: var(--light-primary);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: var(--text-sm);
+}

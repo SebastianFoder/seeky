@@ -8,6 +8,7 @@ const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Ensure component is mounted before rendering
@@ -16,13 +17,21 @@ const ThemeSwitcher = () => {
   }, []);
 
   // Close dropdown when clicking outside
+  const closeDropdown = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, 200);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        closeDropdown();
       }
     };
     if (isOpen) {
@@ -60,7 +69,7 @@ const ThemeSwitcher = () => {
 
   const handleThemeChange = (selectedTheme: string) => {
     setTheme(selectedTheme);
-    setIsOpen(false);
+    closeDropdown();
   };
 
   return (
@@ -72,8 +81,8 @@ const ThemeSwitcher = () => {
         {renderIcon(theme ?? "light")}
       </button>
 
-      {isOpen && (
-        <div className="theme-switcher-dropdown">
+      {(isOpen || isClosing) && (
+        <div className={`theme-switcher-dropdown ${isClosing ? 'closing' : ''}`}>
           <button
             onClick={() => handleThemeChange("light")}
             className="theme-switcher-item"

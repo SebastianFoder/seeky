@@ -1,0 +1,138 @@
+/* Theme Switcher styles using only existing color variables */
+.theme-switcher {
+    position: relative;
+    display: inline-block;
+}
+
+/* Button animations */
+.theme-switcher-button {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: var(--dark-secondary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-switcher-button:hover {
+    transform: translateY(-1px);
+    background-color: var(--light-secondary);
+}
+
+.theme-switcher-button:active {
+    transform: translateY(1px);
+}
+
+/* Icon animations */
+.theme-switcher-icon {
+    color: var(--light-primary);
+    transition: transform 0.2s ease;
+}
+
+.theme-switcher-button:hover .theme-switcher-icon {
+    transform: rotate(15deg);
+}
+
+/* Dropdown animations */
+.theme-switcher-dropdown {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-bottom: 8px;
+    width: 120px;
+    background-color: var(--secondary);
+    border: 1px solid var(--light-secondary);
+    border-radius: 4px;
+    box-shadow: 0 -4px 6px var(--dark-secondary);
+    z-index: 10;
+    animation: slideDown 0.2s ease;
+    transform-origin: bottom;
+}
+
+.theme-switcher-dropdown.closing {
+    animation: slideUp 0.2s ease;
+}
+
+/* Dropdown items animation */
+.theme-switcher-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--light-primary);
+    transition: all 0.2s ease;
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.theme-switcher-item:nth-child(1) { animation-delay: 0.05s; }
+.theme-switcher-item:nth-child(2) { animation-delay: 0.1s; }
+.theme-switcher-item:nth-child(3) { animation-delay: 0.15s; }
+
+.theme-switcher-item:hover {
+    background-color: var(--light-secondary);
+    padding-left: 12px;
+}
+
+.theme-switcher-item:hover .theme-switcher-icon {
+    transform: scale(1.1);
+}
+
+.theme-switcher-dropdown.closing .theme-switcher-item {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+.theme-switcher-dropdown.closing .theme-switcher-item:nth-child(3) { animation-delay: 0s; }
+.theme-switcher-dropdown.closing .theme-switcher-item:nth-child(2) { animation-delay: 0.05s; }
+.theme-switcher-dropdown.closing .theme-switcher-item:nth-child(1) { animation-delay: 0.1s; }
+
+/* Animation keyframes */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+}
