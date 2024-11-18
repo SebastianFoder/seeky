@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { videoService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 interface VideoUploadProps {
     userId: string;
@@ -31,6 +31,8 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
     const [isExtractingFrames, setIsExtractingFrames] = useState<boolean>(false);
     const [customThumbnailPreview, setCustomThumbnailPreview] = useState<string>('');
     const [selectedFrameIndex, setSelectedFrameIndex] = useState<number | null>(null);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [uploadProgress, setUploadProgress] = useState<number>(0);
 
     useEffect(() => {
         if (videoFile) {
@@ -235,34 +237,50 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        if(isUploading) return;
         e.preventDefault();
         setError('');
         setSuccessMessage('');
+        setIsUploading(true);
+        setUploadProgress(0);
 
         if (!videoFile || !thumbnailFile) {
             setError("Please select both video and thumbnail files.");
+            setIsUploading(false);
             return;
         }
 
         if (title.length < 3) {
             setError("Title must be at least 3 characters long.");
+            setIsUploading(false);
             return;
         }
 
         try {
             const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
-            const video = await videoService.uploadVideo(supabase, videoFile, thumbnailFile, {
-                title,
-                description,
-                tags: tagsArray,
-                userId,
-                visibility
-            });
+            const video = await videoService.uploadVideo(
+                supabase,
+                videoFile,
+                thumbnailFile,
+                {
+                    title,
+                    description,
+                    tags: tagsArray,
+                    userId,
+                    visibility
+                },
+                (progress) => {
+                    setUploadProgress(progress);
+                }
+            );
+            
             router.push(`/videos/${video.id}`);
         } catch (error: any) {
             console.error('Upload failed:', error);
             setError('Failed to upload video. Please try again.');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -275,7 +293,11 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                     </label>
                     <div className="custom-upload-button">
                         <div className="custom-upload-button-text">
-                            <FontAwesomeIcon className="custom-upload-icon" size="xl" icon={faUpload} /> Upload
+                            <FontAwesomeIcon 
+                                className="custom-upload-icon" 
+                                size="xl" 
+                                icon={faUpload} 
+                            /> Upload
                         </div>
                         <input 
                             className="custom-upload-input"
@@ -284,6 +306,7 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                             accept=".mp4" 
                             onChange={handleVideoChange} 
                             required 
+                            disabled={isUploading}
                         />
                     </div>                    
                 </div>
@@ -398,8 +421,35 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                 </select>
             </div>
 
+            {/* Upload Progress */}
+            {isUploading && (
+                <div className="upload-progress">
+                    <div className="progress-bar">
+                        <div 
+                            className="progress-bar-fill" 
+                            style={{ width: `${uploadProgress}%` }}
+                        />
+                    </div>
+                    <p className="progress-text">
+                        <FontAwesomeIcon 
+                            icon={faSpinner} 
+                            spin 
+                            className="spinner" 
+                        /> Uploading: {uploadProgress}%
+                    </p>
+                </div>
+            )}
+
             {/* Submit Button */}
-            <button type="submit" className="btn btn-primary">Upload Video</button>
+            <div className="form-group">
+                <button 
+                    type="submit" 
+                    disabled={isUploading}
+                    className={`submit-button ${isUploading ? 'uploading' : ''}`}
+                >
+                    {isUploading ? 'Uploading...' : 'Upload Video'}
+                </button>
+            </div>
         </form>
     );
 };

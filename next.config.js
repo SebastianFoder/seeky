@@ -3,11 +3,11 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: '3000',
-                pathname: '/thumbnail/**',
-            },
+				protocol: 'https',
+				hostname: 'seeky-thumbnails.s3.*.amazonaws.com',
+				pathname: '/**',
+			},
+
         ],
     },
 };

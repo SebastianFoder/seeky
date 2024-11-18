@@ -14,7 +14,7 @@ export default function VideoCard({ video }: VideoCardProps) {
             <Image
                 src={video.thumbnail_url 
                     ? video.thumbnail_url
-                    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/thumbnail/thumbnail-default.jpg` } 
+                    : `/img/thumbnail-default.jpg` } 
                 alt={video.title} 
                 loading="lazy"
                 width={320}

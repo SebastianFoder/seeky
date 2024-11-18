@@ -1,11 +1,21 @@
 import axios from 'axios';
 import { Video } from '@/types/video';
-import { Account } from '@/types/account';
 import { SupabaseClient } from '@supabase/supabase-js';
+
+interface UploadStep {
+    execute: () => Promise<any>;
+    cleanup: () => Promise<void>;
+}
+
+interface UploadState {
+    videoUrl: string | null;
+    thumbnailUrl: string | null;
+    videoRecord: Video | null;
+}
 
 export const videoService = {
     /**
-     * Upload a new video with visibility using the local API
+     * Upload a new video with visibility using S3
      * @param supabase - Supabase client instance
      * @param videoFile - Video file to upload
      * @param thumbnailFile - Thumbnail image file to upload
@@ -22,69 +32,100 @@ export const videoService = {
             tags?: string[];
             userId: string;
             visibility: 'private' | 'unlisted' | 'public';
-        }
+        },
+        onProgress?: (progress: number) => void
     ): Promise<Video> {
-        try {
-            const timestamp = Date.now();
-            
-            // Prepare form data for video upload
-            const videoFormData = new FormData();
-            videoFormData.append('video', videoFile);
+        const state: UploadState = {
+            videoUrl: null,
+            thumbnailUrl: null,
+            videoRecord: null
+        };
 
-            // Upload video to the local API
-            const videoResponse = await axios.post('http://localhost:3000/upload/video', videoFormData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+        const steps: UploadStep[] = [
+            {
+                execute: async () => {
+                    const videoFormData = new FormData();
+                    videoFormData.append('file', videoFile);
+                    
+                    const response = await axios.post('/api/video', videoFormData);
+                    state.videoUrl = response.data.url;
+                    onProgress?.(Math.floor(Math.random() * 23) + 11);
                 },
-            });
-
-            if (videoResponse.status !== 200) {
-                throw new Error('Video upload failed');
-            }
-
-            const { videoName } = videoResponse.data;
-            const videoUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/stream/video/${videoName}`;
-
-            // Prepare form data for thumbnail upload
-            const thumbnailFormData = new FormData();
-            thumbnailFormData.append('thumbnail', thumbnailFile);
-
-            // Upload thumbnail to the local API
-            const thumbnailResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/thumbnail`, thumbnailFormData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+                cleanup: async () => {
+                    if (state.videoUrl) {
+                        await axios.delete(`/api/video/${state.videoUrl.split('/').pop()}`);
+                    }
+                }
+            },
+            {
+                execute: async () => {
+                    const thumbnailFormData = new FormData();
+                    thumbnailFormData.append('file', thumbnailFile);
+                    
+                    const response = await axios.post('/api/thumbnail', thumbnailFormData);
+                    state.thumbnailUrl = response.data.url;
+                    onProgress?.(Math.floor(Math.random() * 23) + 44);
                 },
-            });
+                cleanup: async () => {
+                    if (state.thumbnailUrl) {
+                        await axios.delete(`/api/thumbnail/${state.thumbnailUrl.split('/').pop()}`);
+                    }
+                }
+            },
+            {
+                execute: async () => {
+                    const { data, error } = await supabase
+                        .from('videos')
+                        .insert({
+                            title: metadata.title,
+                            description: metadata.description || null,
+                            url: state.videoUrl,
+                            thumbnail_url: state.thumbnailUrl,
+                            user_id: metadata.userId,
+                            tags: metadata.tags || [],
+                            visibility: metadata.visibility
+                        })
+                        .select()
+                        .single();
 
-            if (thumbnailResponse.status !== 200) {
-                throw new Error('Thumbnail upload failed');
+                    if (error) throw error;
+                    state.videoRecord = data as Video;
+                    onProgress?.(100);
+                    return state.videoRecord;
+                },
+                cleanup: async () => {
+                    if (state.videoRecord?.id) {
+                        await supabase
+                            .from('videos')
+                            .delete()
+                            .eq('id', state.videoRecord.id);
+                    }
+                }
             }
+        ];
 
-            const { thumbnailName } = thumbnailResponse.data;
-            const thumbnailUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/thumbnail/${thumbnailName}`;
+        // Execute steps with cleanup on failure
+        for (let i = 0; i < steps.length; i++) {
+            try {
+                const result = await steps[i].execute();
+                if (i === steps.length - 1) return result;
+            } catch (error) {
+                console.error(`Step ${i + 1} failed:`, error);
 
-            // Insert video record into Supabase
-            const { data, error } = await supabase
-                .from('videos')
-                .insert({
-                    title: metadata.title,
-                    description: metadata.description || null,
-                    url: videoUrl,
-                    thumbnail_url: thumbnailUrl,
-                    user_id: metadata.userId,
-                    tags: metadata.tags || [],
-                    visibility: metadata.visibility
-                })
-                .select()
-                .single();
+                // Cleanup in reverse order up to the failed step
+                for (let j = i; j >= 0; j--) {
+                    try {
+                        await steps[j].cleanup();
+                    } catch (cleanupError) {
+                        console.error(`Cleanup step ${j + 1} failed:`, cleanupError);
+                    }
+                }
 
-            if (error) throw error;
-            return data as Video;
-
-        } catch (error) {
-            console.error('Error uploading video:', error);
-            throw error;
+                throw new Error(`Upload failed at step ${i + 1}: ${(error as Error).message}`);
+            }
         }
+
+        throw new Error('Upload failed: Unknown error');
     },
 
     /**
