@@ -1,0 +1,134 @@
+.video-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.video-player {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--dark-secondary);
+    margin: 1rem 0;
+    border-radius: 8px;
+}
+
+.video-details {
+    margin-top: 2rem;
+    background-color: var(--dark-secondary);
+    border: 1px solid var(--light-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.video-details h1 {
+    font-size: var(--text-2xl);
+    color: var(--light-primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--light-secondary);
+}
+
+.description {
+    font-size: var(--text-lg);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: var(--light-primary);
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--light-secondary);
+}
+
+/* Video Meta and Reactions */
+.meta-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    color: var(--light-secondary);
+}
+
+.meta p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-sm);
+}
+
+.reactions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 9999px;
+    background: var(--secondary);
+    color: var(--light-primary);
+    font-size: var(--text-sm);
+    transition: all 0.2s ease;
+}
+
+/* Only show pointer cursor and hover effects when logged in */
+.reaction-btn[data-logged-in="true"] {
+    cursor: pointer;
+}
+
+.reaction-btn[data-logged-in="true"]:hover {
+    background: var(--light-secondary);
+    transform: translateY(-1px);
+}
+
+.reaction-btn.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Tags */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.tag {
+    background-color: var(--light-secondary);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: var(--text-sm);
+    transition: background-color 0.2s ease;
+}
+
+.tag:hover {
+    background-color: var(--primary);
+}
+
+/* Error Messages */
+.error-message {
+    color: var(--cta);
+    text-align: center;
+    padding: 2rem;
+    font-size: var(--text-lg);
+}
+
+/* Video Placeholder */
+.video-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--dark-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-secondary);
+    border-radius: 8px;
+}

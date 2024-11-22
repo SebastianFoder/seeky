@@ -30,6 +30,7 @@ export interface VideoComment {
     id: string;
     video_id: string;
     user_id: string;
+    user: Account;
     content: string;
     created_at: string;
     updated_at: string;

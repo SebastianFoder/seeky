@@ -1,32 +1,87 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Video } from '@/types/video';
 import Image from 'next/image';
+import { Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useInView } from 'react-intersection-observer';
 
 interface VideoCardProps {
     video: Video;
+    loading?: "lazy" | "eager";
 }
 
-export default function VideoCard({ video }: VideoCardProps) {
+export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
+    const router = useRouter();
+    const [isHovering, setIsHovering] = useState(false);
+    const { ref, inView } = useInView({
+        triggerOnce: true,
+        threshold: 0.1
+    });
+
+    // Prefetch when card comes into view
+    useEffect(() => {
+        if (inView) {
+            router.prefetch(`/videos/${video.id}`);
+        }
+    }, [inView, router, video.id]);
+
+    const handleMouseEnter = () => {
+        setIsHovering(true);
+        // Still prefetch on hover as a backup
+        router.prefetch(`/videos/${video.id}`);
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovering(false);
+    };
+
     return (
-        <a className="video-card" href={`/videos/${video.id}`}>
-            <Image
-                src={video.thumbnail_url 
-                    ? video.thumbnail_url
-                    : `/img/thumbnail-default.jpg` } 
-                alt={video.title} 
-                loading="lazy"
-                width={320}
-                height={180}
-                quality={80}
-                onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.NEXT_PUBLIC_API_BASE_URL}/thumbnail/thumbnail-default.jpg` ; }}
-            />
-            <h3>{video.title}</h3>
-            <p>Views: {video.views}</p>
-            {video.visibility === 'private' && <span className="badge badge-private">Private</span>}
-            {video.visibility === 'unlisted' && <span className="badge badge-unlisted">Unlisted</span>}
-            {video.visibility === 'public' && <span className="badge badge-public">Public</span>}
+        <a 
+            ref={ref}
+            className="video-card" 
+            href={`/videos/${video.id}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            <div className="thumbnail-container">
+                <Image
+                    src={video.thumbnail_url 
+                        ? video.thumbnail_url
+                        : `/img/thumbnail-default.jpg` } 
+                    alt={video.title} 
+                    loading={loading}
+                    width={320}
+                    height={180}
+                    quality={isHovering ? 100 : 80}
+                    priority={loading === "eager"}
+                    onError={(e) => { 
+                        (e.target as HTMLImageElement).src = 
+                        `/img/thumbnail-default.jpg`; 
+                    }}
+                    className={isHovering ? 'hover' : ''}
+                />
+                {isHovering && (
+                    <div className="hover-overlay">
+                        <div className="play-icon">▶</div>
+                    </div>
+                )}
+            </div>
+            <div className="content">
+                <h3>{video.title}</h3>
+                <div className="meta">
+                    <span className="views">
+                        <Eye size={16} />
+                        {video.views.toLocaleString()}
+                    </span>
+                    {video.visibility && (
+                        <span className={`badge badge-${video.visibility}`}>
+                            {video.visibility}
+                        </span>
+                    )}
+                </div>
+            </div>
         </a>
     );
-};
+}

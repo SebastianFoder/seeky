@@ -5,3 +5,17 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
 } 
+
+.loading-more {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+} 
+
+.loading-progress {
+    text-align: center;
+    color: var(--light-secondary);
+    margin: 1rem 0;
+    font-size: var(--text-sm);
+} 

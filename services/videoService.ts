@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Video } from '@/types/video';
+import { Video, VideoComment, VideoReaction } from '@/types/video';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 interface UploadStep {
@@ -11,6 +11,21 @@ interface UploadState {
     videoUrl: string | null;
     thumbnailUrl: string | null;
     videoRecord: Video | null;
+}
+
+interface PaginationParams {
+    page: number;
+    limit: number;
+}
+
+interface PaginatedResponse<T> {
+    data: T[];
+    count: number;
+}
+
+interface CommentPaginationParams {
+    page?: number;
+    limit?: number;
 }
 
 export const videoService = {
@@ -181,25 +196,44 @@ export const videoService = {
      * @param searchTerm - Term to search in title and tags
      * @returns An array of Video objects matching the search criteria
      */
-    async searchVideos(supabase: SupabaseClient, searchTerm: string): Promise<Video[]> {
+    async searchVideos(
+        supabase: SupabaseClient, 
+        searchTerm: string,
+        { page = 1, limit = 12 }: PaginationParams
+    ): Promise<PaginatedResponse<Video>> {
         try {
-            const { data, error } = await supabase
+            const start = (page - 1) * limit;
+            const end = start + limit - 1;
+
+            // Single query for both count and data
+            const { data, error, count } = await supabase
                 .from('videos')
                 .select(`
                     *,
-                    account:accounts(uid, username, email, display_name, avatar_url, bio, role, status, created_at, updated_at)
-                `)
-                .eq('status', 'published')
-                .or(`title.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`)
-                .order('created_at', { ascending: false });
+                    account:accounts (
+                        uid,
+                        username,
+                        display_name,
+                        avatar_url,
+                        bio
+                    )
+                `, { count: 'exact' })
+                .textSearch('title', searchTerm)
+                .eq('visibility', 'public')  // Ensure only public videos are searchable
+                .order('created_at', { ascending: false })
+                .range(start, end);
 
             if (error) throw error;
-            return data.map(item => ({
-                ...item,
-                user: item.account // Directly assign account as user
-            })) as Video[];
+
+            return {
+                data: data.map(item => ({
+                    ...item,
+                    user: item.account
+                })) as Video[],
+                count: count || 0
+            };
         } catch (error) {
-            console.error('Error searching videos:', error);
+            console.error('Error in searchVideos:', error);
             throw error;
         }
     },
@@ -238,23 +272,30 @@ export const videoService = {
     },
 
     /**
-     * Increment view count
+     * Increment the view count for a video
      * @param supabase - Supabase client instance
-     * @param videoId - ID of the video to increment views
+     * @param videoId - The ID of the video to increment views for
+     * @returns The updated view count
      */
-    async incrementViews(supabase: SupabaseClient, videoId: string): Promise<void> {
+    async incrementViews(supabase: SupabaseClient, videoId: string): Promise<number> {
         try {
-            const { error } = await supabase
-                .from('videos')
-                .update({ views: supabase.rpc('increment', { row_id: videoId }) })
-                .eq('id', videoId);
+            const { data, error } = await supabase
+                .rpc('increment', {
+                    row_id: videoId  // Match the parameter name in the Supabase function
+                });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error incrementing views:', error);
+                throw error;
+            }
+
+            return data as number;
         } catch (error) {
-            console.error('Error incrementing views:', error);
+            console.error('Error in incrementViews:', error);
             throw error;
         }
     },
+
     /**
      * Delete video and associated files
      * @param supabase - Supabase client instance
@@ -313,38 +354,40 @@ export const videoService = {
      * @param supabase - Supabase client instance.
      * @returns An array of Video objects with account information.
      */
-    async fetchPublicVideosWithAccount(supabase: SupabaseClient): Promise<Video[]> {
+    async fetchPublicVideosWithAccount(
+        supabase: SupabaseClient,
+        { page = 1, limit = 12 }: PaginationParams
+    ): Promise<PaginatedResponse<Video>> {
         try {
-            const { data, error } = await supabase
+            const start = (page - 1) * limit;
+            const end = start + limit - 1;
+
+            // Get both count and data in a single query
+            const { data, error, count } = await supabase
                 .from('videos')
                 .select(`
                     *,
                     account:accounts (
                         uid,
                         username,
-                        email,
                         display_name,
                         avatar_url,
-                        bio,
-                        role,
-                        status,
-                        created_at,
-                        updated_at
+                        bio
                     )
-                `)
+                `, { count: 'exact' })
                 .eq('visibility', 'public')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(start, end);
 
-            if (error) {
-                console.error('Error fetching public videos with account data:', error);
-                throw error;
-            }
+            if (error) throw error;
 
-            // Map data to match Video interface
-            return data.map(item => ({
-                ...item,
-                user: item.account // Directly assign account as user
-            })) as Video[];
+            return {
+                data: data.map(item => ({
+                    ...item,
+                    user: item.account
+                })) as Video[],
+                count: count || 0
+            };
         } catch (error) {
             console.error('Error in fetchPublicVideosWithAccount:', error);
             throw error;
@@ -359,9 +402,21 @@ export const videoService = {
      */
     async getVideosWithAccount(
         supabase: SupabaseClient,
-        options?: { tags?: string[]; includeUnlisted?: boolean; userId?: string }
-    ): Promise<Video[]> {
+        options?: { 
+            tags?: string[]; 
+            includeUnlisted?: boolean; 
+            userId?: string;
+            page?: number;
+            limit?: number;
+        }
+    ): Promise<PaginatedResponse<Video>> {
         try {
+            const page = options?.page || 1;
+            const limit = options?.limit || 12;
+            const start = (page - 1) * limit;
+            const end = start + limit - 1;
+
+            // Build single query for both count and data
             let query = supabase
                 .from('videos')
                 .select(`
@@ -369,50 +424,40 @@ export const videoService = {
                     account:accounts (
                         uid,
                         username,
-                        email,
                         display_name,
                         avatar_url,
-                        bio,
-                        role,
-                        status,
-                        created_at,
-                        updated_at
+                        bio
                     )
-                `)
+                `, { count: 'exact' })
                 .eq('status', 'published')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(start, end);
 
-            const conditions = [];
-
-            // Include unlisted videos if requested
+            // Add conditions
             if (options?.includeUnlisted) {
-                conditions.push(`visibility.eq.unlisted`);
+                query = query.or(`visibility.eq.unlisted`);
             }
 
-            // Include private videos for the specific user
             if (options?.userId) {
-                conditions.push(`visibility.eq.private,user_id.eq.${options.userId}`);
+                query = query.or(`visibility.eq.private,user_id.eq.${options.userId}`);
             }
 
-            if (conditions.length > 0) {
-                query = query.or(conditions.join(','));
-            }
-
-            // Filter by tags if provided
             if (options?.tags?.length) {
                 query = query.contains('tags', options.tags);
             }
 
-            const { data, error } = await query;
-            if (error) {
-                console.error('Error fetching videos with account data:', error);
-                throw error;
-            }
+            // Execute single query
+            const { data, error, count } = await query;
 
-            return data.map(item => ({
-                ...item,
-                user: item.account // Directly assign account as user
-            })) as Video[];
+            if (error) throw error;
+
+            return {
+                data: data.map(item => ({
+                    ...item,
+                    user: item.account
+                })) as Video[],
+                count: count || 0
+            };
         } catch (error) {
             console.error('Error in getVideosWithAccount:', error);
             throw error;
@@ -461,4 +506,117 @@ export const videoService = {
             return null;
         }
     },
+
+    /**
+     * Get likes and dislikes for a video
+     * @param supabase - Supabase client instance
+     * @param videoId - The ID of the video to get likes and dislikes for
+     * @returns An object containing the number of likes and dislikes
+     */
+    async getLikesAndDislikes(
+        supabase: SupabaseClient, 
+        videoId: string
+    ): Promise<{ likes: number, dislikes: number }> {
+        try {
+            const { data, error } = await supabase
+                .from('reactions')
+                .select('reaction_type', { count: 'exact' })
+                .eq('video_id', videoId);
+
+            if (error) {
+                console.error('Error fetching reactions:', error);
+                throw error;
+            }
+
+            // Count likes and dislikes from the reactions
+            const likes = data.filter(reaction => reaction.reaction_type === 'like').length;
+            const dislikes = data.filter(reaction => reaction.reaction_type === 'dislike').length;
+
+            return { likes, dislikes };
+        } catch (error) {
+            console.error('Error in getLikesAndDislikes:', error);
+            return { likes: 0, dislikes: 0 }; // Return default values on error
+        }
+    },
+
+    /**
+     * Get a user's reaction to a video
+     * @param supabase - Supabase client instance
+     * @param videoId - The ID of the video to get the user's reaction for
+     * @param userId - The ID of the user to get the reaction for
+     * @returns The user's reaction to the video or null if not found
+     */
+    async getUsersReactionToVideo(supabase: SupabaseClient, videoId: string, userId: string): Promise<VideoReaction | null> {
+        try {
+            const { data, error } = await supabase
+                .from('reactions')
+                .select('*')
+                .eq('video_id', videoId)
+                .eq('user_id', userId)
+                .maybeSingle(); // Use maybeSingle() instead of single()
+
+            // If there's a real error (not just "not found")
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching user reaction:', error);
+                return null;
+            }
+
+            return data as VideoReaction | null;
+        } catch (error) {
+            console.error('Error in getUsersReactionToVideo:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Get paginated comments for a video
+     * @param supabase - Supabase client instance
+     * @param videoId - ID of the video to get comments for
+     * @param pagination - Pagination parameters
+     * @returns Paginated comments with total count
+     */
+    async getComments(
+        supabase: SupabaseClient, 
+        videoId: string,
+        { page = 1, limit = 10 }: CommentPaginationParams = {}
+    ): Promise<PaginatedResponse<VideoComment>> {
+        try {
+            const start = (page - 1) * limit;
+            const end = start + limit - 1;
+
+            const { data, error, count } = await supabase
+                .from('comments')
+                .select(`
+                    *,
+                    user:accounts (
+                        uid,
+                        username,
+                        display_name,
+                        avatar_url
+                    )
+                `, { count: 'exact' })
+                .eq('video_id', videoId)
+                .order('created_at', { ascending: false })
+                .range(start, end);
+
+            if (error) {
+                console.error('Error fetching comments:', error);
+                throw error;
+            }
+
+            // Transform the data to match VideoComment type
+            const comments = data.map(comment => ({
+                ...comment,
+                user: comment.user
+            })) as VideoComment[];
+
+            return {
+                data: comments,
+                count: count || 0
+            };
+        } catch (error) {
+            console.error('Error in getComments:', error);
+            throw error;
+        }
+    }
 };
