@@ -8,6 +8,7 @@
 @import "./css/video-card-skeleton.css";
 @import "./css/video-list.css";
 @import "./css/video-upload.css";
+@import "./css/admin-videos.css";
 :root {
     --primary: hsl(22, 96%, 48%);
     --secondary: hsl(346, 100%, 5%);

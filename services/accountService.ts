@@ -59,6 +59,33 @@ export const accountService = {
     },
 
     /**
+     * Search accounts by display name
+     * @param supabase - Supabase client instance
+     * @param searchTerm - Search term to filter accounts
+     * @returns Array of matching accounts
+     */
+    async searchAccounts(supabase: SupabaseClient, searchTerm: string): Promise<Account[]> {
+        try {
+            const { data, error } = await supabase
+                .from('accounts')
+                .select('*')
+                .ilike('display_name', `%${searchTerm}%`)
+                .order('display_name', { ascending: true })
+                .limit(10);
+
+            if (error) {
+                console.error('Error searching accounts:', error);
+                return [];
+            }
+
+            return data as Account[];
+        } catch (error) {
+            console.error('Error in searchAccounts:', error);
+            return [];
+        }
+    },
+
+    /**
      * Additional account management methods can be added here
      */
 }; 

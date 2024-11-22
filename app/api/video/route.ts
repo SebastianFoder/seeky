@@ -52,27 +52,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-
-export async function DELETE(
-	request: NextRequest,
-	{ params }: { params: { filename: string } }
-) {
-	try {
-		const filename = (await params).filename;
-
-		const command = new DeleteObjectCommand({
-			Bucket: process.env.S3_VIDEO_BUCKET_NAME!,
-			Key: filename,
-		});
-
-		await s3.send(command);
-
-		return NextResponse.json({ message: "Video deleted successfully" });
-	} catch (error) {
-		console.error("Error deleting video:", error);
-		return NextResponse.json(
-			{ error: "Error deleting video" },
-			{ status: 500 }
-		);
-	}
-}

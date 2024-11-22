@@ -61,26 +61,4 @@ export async function POST(request: Request) {
 	}
 }
 
-export async function DELETE(
-	request: NextRequest,
-	{ params }: { params: { filename: string } }
-) {
-	try {
-		const filename = (await params).filename;
 
-		const command = new DeleteObjectCommand({
-			Bucket: process.env.S3_THUMBNAIL_BUCKET_NAME!,
-			Key: filename,
-		});
-
-		await s3.send(command);
-
-		return NextResponse.json({ message: "Thumbnail deleted successfully" });
-	} catch (error) {
-		console.error("Error deleting thumbnail:", error);
-		return NextResponse.json(
-			{ error: "Error deleting thumbnail" },
-			{ status: 500 }
-		);
-	}
-}

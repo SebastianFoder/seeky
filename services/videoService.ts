@@ -255,22 +255,55 @@ export const videoService = {
             throw error;
         }
     },
-
     /**
-     * Delete video
+     * Delete video and associated files
      * @param supabase - Supabase client instance
      * @param videoId - ID of the video to delete
      */
     async deleteVideo(supabase: SupabaseClient, videoId: string): Promise<void> {
         try {
-            const { error } = await supabase
+            // First, get the video URLs
+            const { data: video, error: fetchError } = await supabase
+                .from('videos')
+                .select('url, thumbnail_url')
+                .eq('id', videoId)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            if (!video) throw new Error('Video not found');
+
+            if (!video.url || !video.thumbnail_url) throw new Error('Video or thumbnail URL not found');
+            
+            if(typeof video.url !== 'string' || typeof video.thumbnail_url !== 'string') throw new Error('Video or thumbnail URL is not a string');
+
+            // Extract filenames from URLs
+            const videoFilename = video.url.split('/').pop();
+            const thumbnailFilename = video.thumbnail_url.split('/').pop();
+
+            console.log(videoFilename, thumbnailFilename);
+
+            // Delete from database first
+            const { error: deleteError } = await supabase
                 .from('videos')
                 .delete()
                 .eq('id', videoId);
 
-            if (error) throw error;
+            if (deleteError) throw deleteError;
+
+            // Delete video and thumbnail from S3
+            try {
+                await Promise.all([
+                    axios.delete(`/api/video/${videoFilename}`),
+                    axios.delete(`/api/thumbnail/${thumbnailFilename}`)
+                ]);
+            } catch (s3Error) {
+                console.error('Error deleting files from S3:', s3Error);
+                // Consider if you want to revert the database deletion here
+                throw new Error('Failed to delete files from storage');
+            }
         } catch (error) {
-            console.error('Error deleting video:', error);
+            console.error('Error in deleteVideo:', error);
             throw error;
         }
     },

@@ -1,0 +1,110 @@
+.admin-videos {
+    width: 100%;
+    padding: 1rem;
+    position: relative;
+}
+
+.videos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.video-card {
+    flex: 0 1 320px;
+    background: var(--dark-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--light-secondary);
+    transition: transform 0.2s ease;
+}
+
+.video-card:hover {
+    transform: translateY(-2px);
+}
+
+.thumbnail-container {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--secondary);
+}
+
+.video-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.2s ease;
+}
+
+.btn-delete {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: var(--cta);
+    color: var(--white);
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-delete:hover {
+    background-color: color-mix(in srgb, var(--cta) 90%, white);
+    cursor: pointer;
+}
+
+.video-info {
+    padding: 1rem;
+}
+
+.video-title {
+    margin: 0;
+    font-size: var(--text-base);
+    color: var(--light-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-creator {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--primary);
+}
+
+/* Loading state */
+.admin-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: var(--primary);
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    color: var(--primary);
+    animation: spin 1s linear infinite;
+}
+
+.icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--white);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .videos-grid {
+        justify-content: center;
+    }
+}

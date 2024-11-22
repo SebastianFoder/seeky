@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { videoService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { Upload, Loader } from "lucide-react";
 
 interface VideoUploadProps {
     userId: string;
@@ -291,13 +290,10 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                     <label htmlFor="video-upload">
                         <h1>Upload Video</h1>
                     </label>
-                    <div className="custom-upload-button">
+                    <div className="custom-upload-button custom-upload-button-lg">
                         <div className="custom-upload-button-text">
-                            <FontAwesomeIcon 
-                                className="custom-upload-icon" 
-                                size="xl" 
-                                icon={faUpload} 
-                            /> Upload
+                            <Upload className="custom-upload-icon" size={48}/>
+                            Upload
                         </div>
                         <input 
                             className="custom-upload-input"
@@ -354,7 +350,8 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                     ) : (
                         <div className="custom-upload-button custom-upload-button-xs thumbnail-option-wrapper">
                             <div className="custom-upload-button-text">
-                                <FontAwesomeIcon className="custom-upload-icon" size="lg" icon={faUpload} /> Upload
+                                <Upload className="custom-upload-icon" />
+                                Upload
                             </div>
                             <input 
                                 className="custom-upload-input"
@@ -362,7 +359,7 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                                 id="thumbnail" 
                                 accept=".jpg, .jpeg" 
                                 onChange={handleCustomThumbnailChange} 
-                                />
+                            />
                         </div>
                     )}
 
@@ -431,11 +428,8 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                         />
                     </div>
                     <p className="progress-text">
-                        <FontAwesomeIcon 
-                            icon={faSpinner} 
-                            spin 
-                            className="spinner" 
-                        /> Uploading: {uploadProgress}%
+                        <Loader className="spinner" />
+                        Uploading: {uploadProgress}%
                     </p>
                 </div>
             )}
