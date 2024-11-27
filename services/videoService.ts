@@ -158,7 +158,7 @@ export const videoService = {
                 .from('videos')
                 .select('*')
                 .eq('status', 'published')
-                .order('created_at', { ascending: false });
+                .order('views', { ascending: false });
 
             const conditions = [];
 
@@ -359,11 +359,25 @@ export const videoService = {
         { page = 1, limit = 12 }: PaginationParams
     ): Promise<PaginatedResponse<Video>> {
         try {
-            const start = (page - 1) * limit;
-            const end = start + limit - 1;
+            // First get the total count
+            const { count } = await supabase
+                .from('videos')
+                .select('*', { count: 'exact', head: true })
+                .eq('visibility', 'public');
 
-            // Get both count and data in a single query
-            const { data, error, count } = await supabase
+            // If count is 0 or page is beyond available data, return empty result
+            if (!count || (page - 1) * limit >= count) {
+                return {
+                    data: [],
+                    count: count || 0
+                };
+            }
+
+            const start = (page - 1) * limit;
+            const end = Math.min(start + limit - 1, count - 1);
+
+            // Get data for valid range
+            const { data, error } = await supabase
                 .from('videos')
                 .select(`
                     *,
@@ -374,9 +388,9 @@ export const videoService = {
                         avatar_url,
                         bio
                     )
-                `, { count: 'exact' })
+                `)
                 .eq('visibility', 'public')
-                .order('created_at', { ascending: false })
+                .order('views', { ascending: false })
                 .range(start, end);
 
             if (error) throw error;
@@ -386,7 +400,7 @@ export const videoService = {
                     ...item,
                     user: item.account
                 })) as Video[],
-                count: count || 0
+                count: count
             };
         } catch (error) {
             console.error('Error in fetchPublicVideosWithAccount:', error);
@@ -413,11 +427,42 @@ export const videoService = {
         try {
             const page = options?.page || 1;
             const limit = options?.limit || 12;
-            const start = (page - 1) * limit;
-            const end = start + limit - 1;
 
-            // Build single query for both count and data
-            let query = supabase
+            // Build base query for count
+            let countQuery = supabase
+                .from('videos')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'published');
+
+            // Add conditions to count query
+            if (options?.includeUnlisted) {
+                countQuery = countQuery.or('visibility.eq.unlisted');
+            }
+
+            if (options?.userId) {
+                countQuery = countQuery.or(`visibility.eq.private,user_id.eq.${options.userId}`);
+            }
+
+            if (options?.tags?.length) {
+                countQuery = countQuery.contains('tags', options.tags);
+            }
+
+            // Get total count
+            const { count } = await countQuery;
+
+            // If count is 0 or page is beyond available data, return empty result
+            if (!count || (page - 1) * limit >= count) {
+                return {
+                    data: [],
+                    count: count || 0
+                };
+            }
+
+            const start = (page - 1) * limit;
+            const end = Math.min(start + limit - 1, count - 1);
+
+            // Build data query
+            let dataQuery = supabase
                 .from('videos')
                 .select(`
                     *,
@@ -428,26 +473,26 @@ export const videoService = {
                         avatar_url,
                         bio
                     )
-                `, { count: 'exact' })
+                `)
                 .eq('status', 'published')
-                .order('created_at', { ascending: false })
+                .order('views', { ascending: false })
                 .range(start, end);
 
-            // Add conditions
+            // Add same conditions to data query
             if (options?.includeUnlisted) {
-                query = query.or(`visibility.eq.unlisted`);
+                dataQuery = dataQuery.or('visibility.eq.unlisted');
             }
 
             if (options?.userId) {
-                query = query.or(`visibility.eq.private,user_id.eq.${options.userId}`);
+                dataQuery = dataQuery.or(`visibility.eq.private,user_id.eq.${options.userId}`);
             }
 
             if (options?.tags?.length) {
-                query = query.contains('tags', options.tags);
+                dataQuery = dataQuery.contains('tags', options.tags);
             }
 
-            // Execute single query
-            const { data, error, count } = await query;
+            // Execute data query
+            const { data, error } = await dataQuery;
 
             if (error) throw error;
 
@@ -456,10 +501,80 @@ export const videoService = {
                     ...item,
                     user: item.account
                 })) as Video[],
-                count: count || 0
+                count: count
             };
         } catch (error) {
             console.error('Error in getVideosWithAccount:', error);
+            throw error;
+        }
+    },
+
+    async getVideosWithSearch(
+        supabase: SupabaseClient,
+        searchTerm: string,
+        { page = 1, limit = 12 }: PaginationParams
+    ): Promise<PaginatedResponse<Video>> {
+        try {
+            // Clean and prepare the search term
+            const cleanTerm = searchTerm.trim().replace(/[%_]/g, '\\$&'); // Escape special SQL characters
+
+            // First get the total count
+            const { count } = await supabase
+                .from('videos')
+                .select('*', { count: 'exact', head: true })
+                .or(
+                    `title.ilike.%${cleanTerm}%,` +
+                    `description.ilike.%${cleanTerm}%,` +
+                    `tags.cs.{${cleanTerm}}`
+                )
+                .eq('visibility', 'public')
+                .eq('status', 'published');
+
+            // If count is 0 or page is beyond available data, return empty result
+            if (!count || (page - 1) * limit >= count) {
+                return {
+                    data: [],
+                    count: count || 0
+                };
+            }
+
+            const start = (page - 1) * limit;
+            const end = Math.min(start + limit - 1, count - 1);
+
+            // Get data for valid range
+            const { data, error } = await supabase
+                .from('videos')
+                .select(`
+                    *,
+                    account:accounts (
+                        uid,
+                        username,
+                        display_name,
+                        avatar_url,
+                        bio
+                    )
+                `)
+                .or(
+                    `title.ilike.%${cleanTerm}%,` +
+                    `description.ilike.%${cleanTerm}%,` +
+                    `tags.cs.{${cleanTerm}}`
+                )
+                .eq('visibility', 'public')
+                .eq('status', 'published')
+                .order('views', { ascending: false })
+                .range(start, end);
+
+            if (error) throw error;
+
+            return {
+                data: data.map(item => ({
+                    ...item,
+                    user: item.account
+                })) as Video[],
+                count: count
+            };
+        } catch (error) {
+            console.error('Error in getVideosWithSearch:', error);
             throw error;
         }
     },

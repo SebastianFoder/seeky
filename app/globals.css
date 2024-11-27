@@ -11,6 +11,7 @@
 @import "./css/admin-videos.css";
 @import "./css/video.css";
 @import "./css/comments.css";
+@import "./css/search.css";
 :root {
     --primary: hsl(22, 96%, 48%);
     --secondary: hsl(346, 100%, 5%);
