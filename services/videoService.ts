@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Video, VideoComment, VideoReaction } from '@/types/video';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { generateVideoPreview } from '@/lib/generateVideoPreview';
 
 interface UploadStep {
     execute: () => Promise<any>;
@@ -10,22 +11,18 @@ interface UploadStep {
 interface UploadState {
     videoUrl: string | null;
     thumbnailUrl: string | null;
+    previewUrl: string | null;
     videoRecord: Video | null;
 }
 
 interface PaginationParams {
-    page: number;
-    limit: number;
+    page?: number;
+    limit?: number;
 }
 
 interface PaginatedResponse<T> {
     data: T[];
     count: number;
-}
-
-interface CommentPaginationParams {
-    page?: number;
-    limit?: number;
 }
 
 export const videoService = {
@@ -53,6 +50,7 @@ export const videoService = {
         const state: UploadState = {
             videoUrl: null,
             thumbnailUrl: null,
+            previewUrl: null,
             videoRecord: null
         };
 
@@ -64,7 +62,7 @@ export const videoService = {
                     
                     const response = await axios.post('/api/video', videoFormData);
                     state.videoUrl = response.data.url;
-                    onProgress?.(Math.floor(Math.random() * 23) + 11);
+                    onProgress?.(Math.floor(Math.random() * 15) + 10);
                 },
                 cleanup: async () => {
                     if (state.videoUrl) {
@@ -79,11 +77,34 @@ export const videoService = {
                     
                     const response = await axios.post('/api/thumbnail', thumbnailFormData);
                     state.thumbnailUrl = response.data.url;
-                    onProgress?.(Math.floor(Math.random() * 23) + 44);
+                    onProgress?.(Math.floor(Math.random() * 15) + 30);
                 },
                 cleanup: async () => {
                     if (state.thumbnailUrl) {
                         await axios.delete(`/api/thumbnail/${state.thumbnailUrl.split('/').pop()}`);
+                    }
+                }
+            },
+            {
+                execute: async () => {
+                    // Generate preview GIF
+                    const previewBlob = await generateVideoPreview(videoFile, {
+                        duration: 10,
+                        width: 480,
+                        height: 270,
+                        fps: 10
+                    });
+                    
+                    const previewFormData = new FormData();
+                    previewFormData.append('file', previewBlob, 'preview.gif');
+                    
+                    const response = await axios.post('/api/preview', previewFormData);
+                    state.previewUrl = response.data.url;
+                    onProgress?.(Math.floor(Math.random() * 15) + 60);
+                },
+                cleanup: async () => {
+                    if (state.previewUrl) {
+                        await axios.delete(`/api/preview/${state.previewUrl.split('/').pop()}`);
                     }
                 }
             },
@@ -96,9 +117,14 @@ export const videoService = {
                             description: metadata.description || null,
                             url: state.videoUrl,
                             thumbnail_url: state.thumbnailUrl,
+                            preview_url: state.previewUrl,
                             user_id: metadata.userId,
                             tags: metadata.tags || [],
-                            visibility: metadata.visibility
+                            visibility: metadata.visibility,
+                            status: 'processing',
+                            metadata: {
+                                previewGifURL: state.previewUrl
+                            }
                         })
                         .select()
                         .single();
@@ -352,32 +378,15 @@ export const videoService = {
     /**
      * Fetch public videos along with associated account data.
      * @param supabase - Supabase client instance.
-     * @returns An array of Video objects with account information.
+     * @param pagination - Optional pagination parameters
+     * @returns Paginated response of Video objects with account information.
      */
     async fetchPublicVideosWithAccount(
         supabase: SupabaseClient,
-        { page = 1, limit = 12 }: PaginationParams
+        pagination?: PaginationParams
     ): Promise<PaginatedResponse<Video>> {
         try {
-            // First get the total count
-            const { count } = await supabase
-                .from('videos')
-                .select('*', { count: 'exact', head: true })
-                .eq('visibility', 'public');
-
-            // If count is 0 or page is beyond available data, return empty result
-            if (!count || (page - 1) * limit >= count) {
-                return {
-                    data: [],
-                    count: count || 0
-                };
-            }
-
-            const start = (page - 1) * limit;
-            const end = Math.min(start + limit - 1, count - 1);
-
-            // Get data for valid range
-            const { data, error } = await supabase
+            let query = supabase
                 .from('videos')
                 .select(`
                     *,
@@ -388,11 +397,18 @@ export const videoService = {
                         avatar_url,
                         bio
                     )
-                `)
+                `, { count: 'exact' })
                 .eq('visibility', 'public')
-                .order('views', { ascending: false })
-                .range(start, end);
+                .order('views', { ascending: false });
 
+            // Apply pagination only if both page and limit are provided
+            if (pagination?.page && pagination?.limit) {
+                const start = (pagination.page - 1) * pagination.limit;
+                const end = start + pagination.limit - 1;
+                query = query.range(start, end);
+            }
+
+            const { data, error, count } = await query;
             if (error) throw error;
 
             return {
@@ -400,7 +416,7 @@ export const videoService = {
                     ...item,
                     user: item.account
                 })) as Video[],
-                count: count
+                count: count || 0
             };
         } catch (error) {
             console.error('Error in fetchPublicVideosWithAccount:', error);
@@ -425,44 +441,7 @@ export const videoService = {
         }
     ): Promise<PaginatedResponse<Video>> {
         try {
-            const page = options?.page || 1;
-            const limit = options?.limit || 12;
-
-            // Build base query for count
-            let countQuery = supabase
-                .from('videos')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'published');
-
-            // Add conditions to count query
-            if (options?.includeUnlisted) {
-                countQuery = countQuery.or('visibility.eq.unlisted');
-            }
-
-            if (options?.userId) {
-                countQuery = countQuery.or(`visibility.eq.private,user_id.eq.${options.userId}`);
-            }
-
-            if (options?.tags?.length) {
-                countQuery = countQuery.contains('tags', options.tags);
-            }
-
-            // Get total count
-            const { count } = await countQuery;
-
-            // If count is 0 or page is beyond available data, return empty result
-            if (!count || (page - 1) * limit >= count) {
-                return {
-                    data: [],
-                    count: count || 0
-                };
-            }
-
-            const start = (page - 1) * limit;
-            const end = Math.min(start + limit - 1, count - 1);
-
-            // Build data query
-            let dataQuery = supabase
+            let query = supabase
                 .from('videos')
                 .select(`
                     *,
@@ -473,27 +452,31 @@ export const videoService = {
                         avatar_url,
                         bio
                     )
-                `)
+                `, { count: 'exact' })
                 .eq('status', 'published')
-                .order('views', { ascending: false })
-                .range(start, end);
+                .order('views', { ascending: false });
 
-            // Add same conditions to data query
+            // Add conditions
             if (options?.includeUnlisted) {
-                dataQuery = dataQuery.or('visibility.eq.unlisted');
+                query = query.or('visibility.eq.unlisted');
             }
 
             if (options?.userId) {
-                dataQuery = dataQuery.or(`visibility.eq.private,user_id.eq.${options.userId}`);
+                query = query.or(`visibility.eq.private,user_id.eq.${options.userId}`);
             }
 
             if (options?.tags?.length) {
-                dataQuery = dataQuery.contains('tags', options.tags);
+                query = query.contains('tags', options.tags);
             }
 
-            // Execute data query
-            const { data, error } = await dataQuery;
+            // Apply pagination only if both page and limit are provided
+            if (options?.page && options?.limit) {
+                const start = (options.page - 1) * options.limit;
+                const end = start + options.limit - 1;
+                query = query.range(start, end);
+            }
 
+            const { data, error, count } = await query;
             if (error) throw error;
 
             return {
@@ -501,7 +484,7 @@ export const videoService = {
                     ...item,
                     user: item.account
                 })) as Video[],
-                count: count
+                count: count || 0
             };
         } catch (error) {
             console.error('Error in getVideosWithAccount:', error);
@@ -512,37 +495,12 @@ export const videoService = {
     async getVideosWithSearch(
         supabase: SupabaseClient,
         searchTerm: string,
-        { page = 1, limit = 12 }: PaginationParams
+        pagination?: PaginationParams
     ): Promise<PaginatedResponse<Video>> {
         try {
-            // Clean and prepare the search term
-            const cleanTerm = searchTerm.trim().replace(/[%_]/g, '\\$&'); // Escape special SQL characters
+            const cleanTerm = searchTerm.trim().replace(/[%_]/g, '\\$&');
 
-            // First get the total count
-            const { count } = await supabase
-                .from('videos')
-                .select('*', { count: 'exact', head: true })
-                .or(
-                    `title.ilike.%${cleanTerm}%,` +
-                    `description.ilike.%${cleanTerm}%,` +
-                    `tags.cs.{${cleanTerm}}`
-                )
-                .eq('visibility', 'public')
-                .eq('status', 'published');
-
-            // If count is 0 or page is beyond available data, return empty result
-            if (!count || (page - 1) * limit >= count) {
-                return {
-                    data: [],
-                    count: count || 0
-                };
-            }
-
-            const start = (page - 1) * limit;
-            const end = Math.min(start + limit - 1, count - 1);
-
-            // Get data for valid range
-            const { data, error } = await supabase
+            let query = supabase
                 .from('videos')
                 .select(`
                     *,
@@ -553,7 +511,7 @@ export const videoService = {
                         avatar_url,
                         bio
                     )
-                `)
+                `, { count: 'exact' })
                 .or(
                     `title.ilike.%${cleanTerm}%,` +
                     `description.ilike.%${cleanTerm}%,` +
@@ -561,9 +519,16 @@ export const videoService = {
                 )
                 .eq('visibility', 'public')
                 .eq('status', 'published')
-                .order('views', { ascending: false })
-                .range(start, end);
+                .order('views', { ascending: false });
 
+            // Apply pagination only if both page and limit are provided
+            if (pagination?.page && pagination?.limit) {
+                const start = (pagination.page - 1) * pagination.limit;
+                const end = start + pagination.limit - 1;
+                query = query.range(start, end);
+            }
+
+            const { data, error, count } = await query;
             if (error) throw error;
 
             return {
@@ -571,7 +536,7 @@ export const videoService = {
                     ...item,
                     user: item.account
                 })) as Video[],
-                count: count
+                count: count || 0
             };
         } catch (error) {
             console.error('Error in getVideosWithSearch:', error);
@@ -693,13 +658,10 @@ export const videoService = {
     async getComments(
         supabase: SupabaseClient, 
         videoId: string,
-        { page = 1, limit = 10 }: CommentPaginationParams = {}
+        pagination?: PaginationParams
     ): Promise<PaginatedResponse<VideoComment>> {
         try {
-            const start = (page - 1) * limit;
-            const end = start + limit - 1;
-
-            const { data, error, count } = await supabase
+            let query = supabase
                 .from('comments')
                 .select(`
                     *,
@@ -711,22 +673,23 @@ export const videoService = {
                     )
                 `, { count: 'exact' })
                 .eq('video_id', videoId)
-                .order('created_at', { ascending: false })
-                .range(start, end);
+                .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Error fetching comments:', error);
-                throw error;
+            // Apply pagination only if both page and limit are provided
+            if (pagination?.page && pagination?.limit) {
+                const start = (pagination.page - 1) * pagination.limit;
+                const end = start + pagination.limit - 1;
+                query = query.range(start, end);
             }
 
-            // Transform the data to match VideoComment type
-            const comments = data.map(comment => ({
-                ...comment,
-                user: comment.user
-            })) as VideoComment[];
+            const { data, error, count } = await query;
+            if (error) throw error;
 
             return {
-                data: comments,
+                data: data.map(comment => ({
+                    ...comment,
+                    user: comment.user
+                })) as VideoComment[],
                 count: count || 0
             };
         } catch (error) {

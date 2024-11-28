@@ -1,4 +1,4 @@
-import AdminVideos from "@/components/admin-videos";
+import AdminVideos from "./component";
 import { accountService } from "@/services/accountService";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";

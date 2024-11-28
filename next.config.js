@@ -10,6 +10,31 @@ const nextConfig = {
 
         ],
     },
+    webpack: (config) => {
+        config.experiments = {
+            ...config.experiments,
+            asyncWebAssembly: true,
+        };
+        return config;
+    },
+    // Add headers for Cross-Origin Isolation
+    async headers() {
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Cross-Origin-Embedder-Policy',
+                        value: 'require-corp',
+                    },
+                    {
+                        key: 'Cross-Origin-Opener-Policy',
+                        value: 'same-origin',
+                    },
+                ],
+            },
+        ];
+    },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

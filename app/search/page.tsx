@@ -9,6 +9,7 @@ import VideoCard from '@/components/video-card';
 import { useInView } from 'react-intersection-observer';
 import VideoCardSkeleton from '@/components/video-card-skeleton';
 import { Search as SearchIcon } from 'lucide-react';
+import { searchVideos } from './functions';
 
 export default function Search() {
     const searchParams = useSearchParams();
@@ -24,35 +25,26 @@ export default function Search() {
     const supabase = createClient();
 
     const fetchVideos = async (pageNum: number, isInitial: boolean = false) => {
-        try {
-            if (!query.trim()) {
-                setVideos([]);
-                setTotalResults(0);
-                setHasMore(false);
-                return;
-            }
-
-            setLoading(true);
-            const response = await videoService.getVideosWithSearch(
-                supabase,
+        await searchVideos(
+            supabase,
+            {
                 query,
-                { page: pageNum, limit: 12 }
-            );
-
-            setTotalResults(response.count);
-            
-            if (isInitial) {
-                setVideos(response.data);
-            } else {
-                setVideos(prev => [...prev, ...response.data]);
-            }
-
-            setHasMore(videos.length + response.data.length < response.count);
-        } catch (error) {
-            console.error('Error fetching search results:', error);
-        } finally {
-            setLoading(false);
-        }
+                page: pageNum,
+                limit: 12,
+                isInitial
+            },
+            {
+                onStart: () => setLoading(true),
+                onSuccess: ({ videos: newVideos, totalResults: total, hasMore: more }) => {
+                    setVideos(newVideos);
+                    setTotalResults(total);
+                    setHasMore(more);
+                },
+                onError: (error) => console.error(error),
+                onComplete: () => setLoading(false)
+            },
+            videos // Pass current videos for pagination
+        );
     };
 
     // Initial load when query changes

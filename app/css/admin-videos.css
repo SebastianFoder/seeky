@@ -5,14 +5,13 @@
 }
 
 .videos-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
     padding: 1rem 0;
 }
 
 .admin-videos .video-card {
-    flex: 0 1 320px;
     background: var(--dark-secondary);
     border-radius: 8px;
     overflow: hidden;
@@ -75,11 +74,13 @@
     color: var(--primary);
 }
 
-/* Loading state */
-.admin-loading {
+/* Loading states */
+.loading-container {
     display: flex;
     justify-content: center;
     align-items: center;
+    grid-column: 1 / -1;
+    padding: 2rem;
     min-height: 200px;
     color: var(--primary);
 }
@@ -97,6 +98,21 @@
     color: var(--white);
 }
 
+/* Infinite scroll trigger */
+.load-more-trigger {
+    height: 20px;
+    grid-column: 1 / -1;
+    visibility: hidden; /* Hide the trigger div but keep its functionality */
+}
+
+/* Empty state */
+.no-videos {
+    text-align: center;
+    padding: 2rem;
+    color: var(--primary);
+    grid-column: 1 / -1;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -105,6 +121,16 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .videos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         justify-content: center;
+    }
+
+    .admin-videos {
+        padding: 0.5rem;
+    }
+
+    .videos-grid {
+        gap: 1rem;
+        padding: 0.5rem 0;
     }
 }

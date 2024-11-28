@@ -9,6 +9,7 @@ import CommentSkeleton from '@/components/comment-skeleton';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Send } from 'lucide-react';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 
 interface VideoCommentsProps {
     videoId: string;
@@ -63,6 +64,9 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                 setComments(prev => [...prev, ...response.data]);
             }
 
+            console.log(comments.length + response.data.length, response.count);
+            console.log(response.data);
+
             setHasMore(comments.length + response.data.length < response.count);
         } catch (error) {
             console.error('Error fetching comments:', error);
@@ -85,11 +89,13 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
     }, [inView, hasMore, loading]);
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-            Math.floor((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-            'day'
-        );
+        try {
+            const date = parseISO(dateString);
+            return formatDistanceToNow(date, { addSuffix: true });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'some time ago';
+        }
     };
 
     const handleSubmitComment = async (e: React.FormEvent) => {
@@ -98,14 +104,16 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
 
         setIsSubmitting(true);
 
+        const currentTime = new Date().toISOString();
+
         // Create optimistic comment using the stored userData
         const optimisticComment: VideoComment = {
-            id: `temp-${Date.now()}`,
+            id: `temp-${currentTime}`,
             video_id: videoId,
             user_id: userId,
             content: newComment.trim(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            created_at: currentTime,
+            updated_at: currentTime,
             user: {
                 uid: userId,
                 username: userData?.username || '',
@@ -113,8 +121,8 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                 avatar_url: userData?.avatar_url || '',
                 role: 'user',
                 status: 'active',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                created_at: currentTime,
+                updated_at: currentTime
             }
         };
 
@@ -225,7 +233,10 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                                 >
                                     {comment.user.display_name}
                                 </Link>
-                                <span className="timestamp" title={new Date(comment.created_at).toLocaleString()}>
+                                <span 
+                                    className="timestamp" 
+                                    title={new Date(comment.created_at).toLocaleString()}
+                                >
                                     {formatDate(comment.created_at)}
                                 </span>
                             </div>

@@ -55,7 +55,7 @@
 
 .timestamp {
     font-size: var(--text-sm);
-    color: var(--light-secondary);
+    color: var(--information-text-color);
 }
 
 .comment-text {

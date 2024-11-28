@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { videoService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
 import { Upload, Loader } from "lucide-react";
+import { extractVideoFrames, processImage, uploadVideo } from "./functions";
+
 
 interface VideoUploadProps {
     userId: string;
@@ -74,81 +75,35 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
         }
     };
 
-    const extractFrames = (videoURL: string) => {
+    const extractFrames = async (videoURL: string) => {
         setIsExtractingFrames(true);
-        const video = document.createElement('video');
-        video.src = videoURL;
-        video.crossOrigin = 'Anonymous';
-        video.currentTime = 0;
 
-        video.addEventListener('loadedmetadata', () => {
-            const duration = video.duration;
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-
-            if (!context) {
-                setError('Failed to extract frames.');
-                setIsExtractingFrames(false);
-                return;
-            }
-
-            canvas.width = thumbnailWidth;
-            canvas.height = thumbnailHeight;
-
-            // Define frame times at random positions within each third of the video
-            const frameTimes = [
-                Math.random() * (duration * 0.33),
-                Math.random() * (duration * 0.33) + duration * 0.33,
-                Math.random() * (duration * 0.34) + duration * 0.66
-            ];
-
-            const extractedFrames: string[] = [];
-            let framesExtracted = 0;
-
-            const captureFrame = () => {
-                if (framesExtracted >= frameTimes.length) {
-                    setFrameOptions(extractedFrames);
-                    setIsExtractingFrames(false);
-                    video.removeEventListener('seeked', handleSeeked);
-                    return;
+        try {
+            await extractVideoFrames(
+                videoURL,
+                {
+                    thumbnailWidth,
+                    thumbnailHeight,
+                },
+                {
+                    onComplete: (frames) => {
+                        setFrameOptions(frames);
+                        setIsExtractingFrames(false);
+                    },
+                    onError: (error) => {
+                        setError(error);
+                        setIsExtractingFrames(false);
+                    },
+                    onProgress: (progress) => {
+                        // Optional: handle progress updates
+                        console.log(`Extraction progress: ${progress}%`);
+                    }
                 }
-
-                const currentTime = frameTimes[framesExtracted];
-                video.currentTime = currentTime;
-            };
-
-            const handleSeeked = () => {
-                // Calculate scaling ratios to fill canvas while maintaining aspect ratio
-                const widthRatio = thumbnailWidth / video.videoWidth;
-                const heightRatio = thumbnailHeight / video.videoHeight;
-                const ratio = Math.max(widthRatio, heightRatio);
-
-                // Calculate dimensions to fill canvas
-                const drawWidth = video.videoWidth * ratio;
-                const drawHeight = video.videoHeight * ratio;
-
-                // Calculate centering offsets
-                const x = (thumbnailWidth - drawWidth) / 2;
-                const y = (thumbnailHeight - drawHeight) / 2;
-
-                // Draw scaled image
-                context.drawImage(video, x, y, drawWidth, drawHeight);
-                
-                const dataURL = canvas.toDataURL('image/jpeg');
-                extractedFrames.push(dataURL);
-                framesExtracted += 1;
-                captureFrame();
-            };
-
-            video.addEventListener('seeked', handleSeeked);
-
-            captureFrame();
-        });
-
-        video.addEventListener('error', () => {
-            setError('Error loading video for frame extraction.');
+            );
+        } catch (error) {
+            setError('Failed to extract video frames');
             setIsExtractingFrames(false);
-        });
+        }
     };
 
     const handleFrameSelection = (dataURL: string) => {
@@ -163,124 +118,64 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
             });
     };
 
-    const handleCustomThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        if (file) {
-            const validImageTypes = ["image/jpeg", "image/jpg"];
-            if (!validImageTypes.includes(file.type)) {
-                setError("Only JPG/JPEG images are allowed for custom thumbnails.");
-                setCustomThumbnailPreview('');
-                return;
+    const handleCustomThumbnailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        await processImage(
+            file,
+            {
+                width: thumbnailWidth,
+                height: thumbnailHeight,
+                allowedTypes: ['image/jpeg', 'image/jpg']
+            },
+            {
+                onComplete: ({ file: scaledFile, dataUrl }) => {
+                    setThumbnailFile(scaledFile);
+                    setCustomThumbnailPreview(dataUrl);
+                    setSelectedFrameIndex(4);
+                    setError('');
+                },
+                onError: (errorMessage) => {
+                    setError(errorMessage);
+                    setCustomThumbnailPreview('');
+                }
             }
-    
-            // Create canvas for scaling
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-    
-            if (!context) {
-                setError('Failed to process thumbnail.');
-                return;
-            }
-    
-            canvas.width = thumbnailWidth;
-            canvas.height = thumbnailHeight;
-    
-            // Create image element to load the file
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-    
-            img.onload = () => {
-                // Calculate scaling ratios to fill canvas while maintaining aspect ratio
-                const widthRatio = thumbnailWidth / img.width;
-                const heightRatio = thumbnailHeight / img.height;
-                const ratio = Math.max(widthRatio, heightRatio);
-    
-                // Calculate dimensions to fill canvas
-                const drawWidth = img.width * ratio;
-                const drawHeight = img.height * ratio;
-    
-                // Calculate centering offsets
-                const x = (thumbnailWidth - drawWidth) / 2;
-                const y = (thumbnailHeight - drawHeight) / 2;
-    
-                // Draw scaled image
-                context.drawImage(img, x, y, drawWidth, drawHeight);
-    
-                // Get data URL and convert to file
-                const dataURL = canvas.toDataURL('image/jpeg');
-                
-                // Use the same conversion method as handleFrameSelection
-                fetch(dataURL)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        const scaledFile = new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' });
-                        setThumbnailFile(scaledFile);
-                        setCustomThumbnailPreview(dataURL);
-                        setSelectedFrameIndex(4);
-                        setError('');
-                    })
-                    .catch(() => {
-                        setError('Failed to process thumbnail.');
-                    })
-                    .finally(() => {
-                        // Cleanup
-                        URL.revokeObjectURL(img.src);
-                    });
-            };
-    
-            img.onerror = () => {
-                setError('Failed to load thumbnail image.');
-                URL.revokeObjectURL(img.src);
-            };
-        }
+        );
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        if(isUploading) return;
+        if (isUploading) return;
         e.preventDefault();
         setError('');
         setSuccessMessage('');
         setIsUploading(true);
         setUploadProgress(0);
 
-        if (!videoFile || !thumbnailFile) {
-            setError("Please select both video and thumbnail files.");
-            setIsUploading(false);
-            return;
-        }
+        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
-        if (title.length < 3) {
-            setError("Title must be at least 3 characters long.");
-            setIsUploading(false);
-            return;
-        }
-
-        try {
-            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-            const video = await videoService.uploadVideo(
-                supabase,
-                videoFile,
-                thumbnailFile,
-                {
-                    title,
-                    description,
-                    tags: tagsArray,
-                    userId,
-                    visibility
-                },
-                (progress) => {
-                    setUploadProgress(progress);
+        await uploadVideo(
+            supabase,
+            videoFile!,
+            thumbnailFile!,
+            {
+                title,
+                description,
+                tags: tagsArray,
+                userId,
+                visibility
+            },
+            {
+                onProgress: (progress) => setUploadProgress(progress),
+                onSuccess: (videoId) => router.push(`/videos/${videoId}`),
+                onError: (errorMessage) => {
+                    setError(errorMessage);
+                    setIsUploading(false);
                 }
-            );
-            
-            router.push(`/videos/${video.id}`);
-        } catch (error: any) {
-            console.error('Upload failed:', error);
-            setError('Failed to upload video. Please try again.');
-        } finally {
-            setIsUploading(false);
-        }
+            }
+        );
+
+        setIsUploading(false);
     };
 
     if(!videoFile) {

@@ -21,6 +21,8 @@
     --light-secondary: hsl(346, 60%, 15%);
     --dark-secondary: hsl(346, 100%, 1%);
     --white: hsl(0, 90%, 95%);
+    --black: hsl(0, 0%, 5%);
+    --information-text-color: hsl(20, 90%, 80%);
 
     /* Typography Scale */
     --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);    /* 12px - 14px */
