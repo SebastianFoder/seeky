@@ -54,22 +54,7 @@ export const videoService = {
             videoRecord: null
         };
 
-        const steps: UploadStep[] = [
-            {
-                execute: async () => {
-                    const videoFormData = new FormData();
-                    videoFormData.append('file', videoFile);
-                    
-                    const response = await axios.post('/api/video', videoFormData);
-                    state.videoUrl = response.data.url;
-                    onProgress?.(Math.floor(Math.random() * 15) + 10);
-                },
-                cleanup: async () => {
-                    if (state.videoUrl) {
-                        await axios.delete(`/api/video/${state.videoUrl.split('/').pop()}`);
-                    }
-                }
-            },
+        const steps: UploadStep[] = [            
             {
                 execute: async () => {
                     const thumbnailFormData = new FormData();
@@ -87,6 +72,7 @@ export const videoService = {
             },
             {
                 execute: async () => {
+                    console.log('Generating preview GIF');
                     // Generate preview GIF
                     const previewBlob = await generateVideoPreview(videoFile, {
                         duration: 10,
@@ -94,6 +80,8 @@ export const videoService = {
                         height: 270,
                         fps: 10
                     });
+
+                    console.log('Uploading preview GIF');
                     
                     const previewFormData = new FormData();
                     previewFormData.append('file', previewBlob, 'preview.gif');
@@ -101,6 +89,7 @@ export const videoService = {
                     const response = await axios.post('/api/preview', previewFormData);
                     state.previewUrl = response.data.url;
                     onProgress?.(Math.floor(Math.random() * 15) + 60);
+                    console.log('Preview GIF uploaded');
                 },
                 cleanup: async () => {
                     if (state.previewUrl) {
@@ -117,7 +106,6 @@ export const videoService = {
                             description: metadata.description || null,
                             url: state.videoUrl,
                             thumbnail_url: state.thumbnailUrl,
-                            preview_url: state.previewUrl,
                             user_id: metadata.userId,
                             tags: metadata.tags || [],
                             visibility: metadata.visibility,
@@ -142,7 +130,25 @@ export const videoService = {
                             .eq('id', state.videoRecord.id);
                     }
                 }
-            }
+            },
+            {
+                execute: async () => {
+                    const videoFormData = new FormData();
+                    videoFormData.append('file', videoFile);
+                    videoFormData.append('videoId', state.videoRecord?.id || '');
+                    videoFormData.append('userId', metadata.userId);
+                    
+                    const response = await axios.post('/api/video', videoFormData);
+                    state.videoUrl = response.data.url;
+                    onProgress?.(Math.floor(Math.random() * 15) + 10);
+                    return state.videoRecord;
+                },
+                cleanup: async () => {
+                    if (state.videoUrl) {
+                        await axios.delete(`/api/video/${state.videoRecord?.id}`);
+                    }
+                }
+            },
         ];
 
         // Execute steps with cleanup on failure

@@ -1,20 +1,15 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
-
-const s3 = new S3Client({
-	region: process.env.AWS_REGION!,
-	credentials: {
-		accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-		secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-	},
-});
 
 export async function POST(request: NextRequest) {
 	try {
 		const formData = await request.formData();
 		const file = formData.get("file") as File;
-		
+		const videoId = formData.get("videoId") as string;
+		const userId = formData.get("userId") as string;
+
 		if (!file) {
 			return NextResponse.json(
 				{ error: "No file provided" },
@@ -22,27 +17,44 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Generate unique filename
-		const fileExtension = file.name.split(".").pop();
-		const fileName = `${Date.now()}.${uuidv4()}.${fileExtension}`;
+		if (!videoId) {
+			return NextResponse.json(
+				{ error: "No videoId provided" },
+				{ status: 400 }
+			);
+		}
 
-		// Convert file to buffer
-		const buffer = Buffer.from(await file.arrayBuffer());
+		const processingId = generateProcessingId(userId);
+		formData.append('processingId', processingId);
 
-		// Upload to S3
-		const command = new PutObjectCommand({
-			Bucket: process.env.S3_VIDEO_BUCKET_NAME!,
-			Key: fileName,
-			Body: buffer,
-			ContentType: file.type,
+		const supabase = await createClient();
+
+		const { data, error: insertError } = await supabase
+			.from('video_processing_tickets')
+			.insert([
+				{
+					processing_id: processingId,
+					user_id: userId,
+					video_id: videoId,
+				}
+			]);
+
+		if (insertError) {
+			console.error("Error inserting processing ticket:", insertError);
+			return NextResponse.json(
+				{ error: "Error creating processing ticket" },
+				{ status: 500 }
+			);
+		}
+		console.log('Sending to video processing');
+		await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/videoprocessing`, formData, {
+			headers: {
+				'Content-Type': 'multipart/form-data',
+			},
 		});
+		console.log('Sent to video processing');
 
-		await s3.send(command);
-
-		// Generate S3 URL
-		const videoUrl = `https://${process.env.S3_VIDEO_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
-		return NextResponse.json({ url: videoUrl });
+		return NextResponse.json({ status: 'processing', videoId, processingId });
 
 	} catch (error) {
 		console.error("Error uploading video:", error);
@@ -51,4 +63,8 @@ export async function POST(request: NextRequest) {
 			{ status: 500 }
 		);
 	}
+}
+
+function generateProcessingId(userId: string) {
+    return 'proc_' + Date.now() + '_' + uuidv4() + '_' + userId;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Video } from '@/types/video';
 import Image from 'next/image';
 import { Eye } from 'lucide-react';
@@ -15,26 +15,47 @@ interface VideoCardProps {
 export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
     const router = useRouter();
     const [isHovering, setIsHovering] = useState(false);
+    const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const previewRef = useRef<HTMLImageElement>(null);
     const { ref, inView } = useInView({
         triggerOnce: true,
         threshold: 0.1
     });
 
-    // Prefetch when card comes into view
+    const previewUrl = video.metadata?.previewGifURL;
+
     useEffect(() => {
         if (inView) {
             router.prefetch(`/videos/${video.id}`);
         }
     }, [inView, router, video.id]);
 
+    useEffect(() => {
+        return () => {
+            if (hoverTimerRef.current) {
+                clearTimeout(hoverTimerRef.current);
+            }
+        };
+    }, []);
+
     const handleMouseEnter = () => {
         setIsHovering(true);
-        // Still prefetch on hover as a backup
         router.prefetch(`/videos/${video.id}`);
+
+        if (previewUrl && previewRef.current) {
+            hoverTimerRef.current = setTimeout(() => {
+                previewRef.current!.src = previewUrl;
+            }, 1000);
+        }
     };
 
     const handleMouseLeave = () => {
         setIsHovering(false);
+        
+        if (hoverTimerRef.current) {
+            clearTimeout(hoverTimerRef.current);
+            hoverTimerRef.current = null;
+        }
     };
 
     return (
@@ -49,24 +70,32 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
                 <Image
                     src={video.thumbnail_url 
                         ? video.thumbnail_url
-                        : `/img/thumbnail-default.jpg` } 
+                        : `/img/thumbnail-default.jpg`}
                     alt={video.title} 
                     loading={loading}
                     width={320}
                     height={180}
-                    quality={isHovering ? 100 : 80}
+                    quality={80}
                     priority={loading === "eager"}
-                    onError={(e) => { 
+                    onError={(e) => {
                         (e.target as HTMLImageElement).src = 
-                        `/img/thumbnail-default.jpg`; 
+                        `/img/thumbnail-default.jpg`;
                     }}
-                    className={isHovering ? 'hover' : ''}
                 />
-                {isHovering && (
-                    <div className="hover-overlay">
-                        <div className="play-icon">▶</div>
-                    </div>
+                {previewUrl && (
+                    <Image
+                        ref={previewRef}
+                        src={previewUrl}
+                        alt={`${video.title} preview`}
+                        width={320}
+                        height={180}
+                        className="preview-gif"
+                        unoptimized
+                    />
                 )}
+                <div className="hover-overlay">
+                    <div className="play-icon">▶</div>
+                </div>
             </div>
             <div className="content">
                 <h3>{video.title}</h3>

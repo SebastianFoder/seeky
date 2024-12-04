@@ -12,6 +12,25 @@
     border-radius: 8px;
 }
 
+.quality-selector select {
+    background-color: transparent;
+    color: var(--light-primary);
+    border: 1px solid var(--light-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--text-sm);
+}
+
+.quality-selector select:hover {
+    border-color: var(--primary);
+}
+
+.quality-selector select option {
+    background-color: var(--dark-secondary);
+    color: var(--light-primary);
+}
+
 .video-details {
     margin-top: 2rem;
     background-color: var(--dark-secondary);

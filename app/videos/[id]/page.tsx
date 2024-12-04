@@ -93,6 +93,9 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
                 <div className="comments-container">
                     <VideoComments videoId={video.id} userId={user?.id || ''} />
                 </div>
+                <pre>
+                    {JSON.stringify(video, null, 2)}
+                </pre>
             </div>
         );
     } catch (error) {
