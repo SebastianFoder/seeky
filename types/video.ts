@@ -29,7 +29,7 @@ export interface Video {
 
     // Relations
     user_id: string;  // UUID, foreign key to accounts.uid
-    user: Account;   // Virtual field from join
+    account: Account;   // Virtual field from join
 
     // Timestamps
     created_at: string;  // Timestamp with timezone
@@ -48,7 +48,7 @@ export interface VideoComment {
     id: string;  // UUID
     video_id: string;  // UUID
     user_id: string;  // UUID
-    user: Account;  // Virtual field from join
+    account: Account;  // Virtual field from join
     content: string;
     created_at: string;  // Timestamp with timezone
     updated_at: string;  // Timestamp with timezone

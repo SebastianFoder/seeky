@@ -108,6 +108,14 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect("error", "/forgot-password", "Email is required");
   }
 
+  if(!email.includes("@")){
+    return encodedRedirect("error", "/forgot-password", "Email must be a valid email address");
+  }
+
+  if(email.includes("@example.com")){
+    return encodedRedirect("error", "/forgot-password", "Email must not be an example email address");
+  }
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?redirect_to=/protected/reset-password`,
   });

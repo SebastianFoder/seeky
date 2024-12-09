@@ -100,15 +100,22 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
             <div className="content">
                 <h3>{video.title}</h3>
                 <div className="meta">
+                    {video.account.avatar_url && (
+                        <Image
+                            src={video.account.avatar_url}
+                            alt={video.account.display_name}
+                            width={24}
+                            height={24}
+                        />
+                    )}
+                    <span className="account">
+                        {video.account.display_name}
+                    </span>
+                    |
                     <span className="views">
                         <Eye size={16} />
                         {video.views.toLocaleString()}
                     </span>
-                    {video.visibility && (
-                        <span className={`badge badge-${video.visibility}`}>
-                            {video.visibility}
-                        </span>
-                    )}
                 </div>
             </div>
         </a>

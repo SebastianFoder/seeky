@@ -15,7 +15,18 @@
 
 .loading-progress {
     text-align: center;
-    color: var(--light-secondary);
+    color: var(--information-text-color);
+    margin: 1rem 0;
+    font-size: var(--text-sm);
+} 
+
+.loading-progress-count {
+    font-weight: 900;
+}
+
+.no-videos-text {
+    text-align: center;
+    color: var(--information-text-color);
     margin: 1rem 0;
     font-size: var(--text-sm);
 } 

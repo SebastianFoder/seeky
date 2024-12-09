@@ -188,7 +188,16 @@ export const videoService = {
         try {
             let query = supabase
                 .from('videos')
-                .select('*')
+                .select(`
+                    *,
+                    account:accounts (
+                        uid,
+                        username,
+                        display_name,
+                        avatar_url,
+                        bio
+                    )
+                `)
                 .eq('status', 'published')
                 .order('views', { ascending: false });
 
@@ -258,10 +267,7 @@ export const videoService = {
             if (error) throw error;
 
             return {
-                data: data.map(item => ({
-                    ...item,
-                    user: item.account
-                })) as Video[],
+                data: data as Video[],
                 count: count || 0
             };
         } catch (error) {
@@ -418,10 +424,7 @@ export const videoService = {
             if (error) throw error;
 
             return {
-                data: data.map(item => ({
-                    ...item,
-                    user: item.account
-                })) as Video[],
+                data: data as Video[],
                 count: count || 0
             };
         } catch (error) {
@@ -486,10 +489,7 @@ export const videoService = {
             if (error) throw error;
 
             return {
-                data: data.map(item => ({
-                    ...item,
-                    user: item.account
-                })) as Video[],
+                data: data as Video[],
                 count: count || 0
             };
         } catch (error) {
@@ -538,10 +538,7 @@ export const videoService = {
             if (error) throw error;
 
             return {
-                data: data.map(item => ({
-                    ...item,
-                    user: item.account
-                })) as Video[],
+                data: data as Video[],
                 count: count || 0
             };
         } catch (error) {
@@ -583,10 +580,7 @@ export const videoService = {
                 return null;
             }
 
-            return {
-                ...data,
-                user: data.account
-            } as Video;
+            return data as Video;
         } catch (error) {
             console.error('Error in getVideoByIdWithAccount:', error);
             return null;
@@ -692,10 +686,7 @@ export const videoService = {
             if (error) throw error;
 
             return {
-                data: data.map(comment => ({
-                    ...comment,
-                    user: comment.user
-                })) as VideoComment[],
+                data: data as VideoComment[],
                 count: count || 0
             };
         } catch (error) {

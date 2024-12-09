@@ -12,13 +12,15 @@
 @import "./css/video.css";
 @import "./css/comments.css";
 @import "./css/search.css";
+@import "./css/auth-pages.css";
+
 :root {
-    --primary: hsl(22, 96%, 48%);
-    --secondary: hsl(346, 100%, 5%);
-    --light-primary: hsl(28, 96%, 48%);
-    --dark-primary: hsl(16, 96%, 48%);
-    --cta: hsl(0, 91%, 34%);
-    --light-secondary: hsl(346, 60%, 15%);
+    --primary: hsl(22, 96%, 50%);
+    --secondary: hsl(346, 100%, 7.5%);
+    --light-primary: hsl(28, 96%, 55%);
+    --dark-primary: hsl(16, 96%, 45%);
+    --cta: hsl(0, 91%, 45%);
+    --light-secondary: hsl(346, 60%, 25%);
     --dark-secondary: hsl(346, 100%, 1%);
     --white: hsl(0, 90%, 95%);
     --black: hsl(0, 0%, 5%);
@@ -48,7 +50,7 @@ body{
     display: flex;
     flex-direction: column;
     background-color: var(--secondary);
-    min-height: 200lvh;
+    min-height: 100vh;
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: normal;
@@ -72,7 +74,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     line-height: var(--leading-tight);
     margin-bottom: var(--spacing-text);
-    color: var(--light-primary);
+    color: var(--primary);
 }
 
 h1 {
@@ -127,6 +129,10 @@ small {
 
 .text-container > * + * {
     margin-top: var(--spacing-text);
+}
+
+.information-text {
+    color: var(--information-text-color);
 }
 
 /* Responsive adjustments */

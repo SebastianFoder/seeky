@@ -58,6 +58,8 @@ export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
             // Check if we've reached the end
             setHasMore(videos.length + filteredVideos.length < response.count);
 
+            console.log(fetchedVideos);
+
             if (isInitial) {
                 setVideos(fetchedVideos);
             } else {
@@ -124,7 +126,7 @@ export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
                         </li>
                     ))
                 ) : (
-                    <p>No public videos found.</p>
+                    <p className="no-videos-text">No public videos found.</p>
                 )}
             </ul>
             
@@ -140,7 +142,7 @@ export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
             {/* Show loading progress */}
             {videos.length > 0 && (
                 <div className="loading-progress">
-                    Showing {videos.length} of {totalCount} videos
+                    Showing <span className="loading-progress-count">{videos.length}</span> of <span className="loading-progress-count">{totalCount}</span> videos
                 </div>
             )}
             

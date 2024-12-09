@@ -6,32 +6,43 @@ import Link from "next/link";
 export default async function Login(props: { searchParams: Promise<Message> }) {
   const searchParams = await props.searchParams;
   return (
-    <form>
-      <h1>Sign in</h1>
-      <p>
+    <form className="auth-form">
+      <h1 className="title">Sign in</h1>
+      <p className="signup-text">
         Don't have an account?{" "}
         <Link href="/sign-up">
           Sign up
         </Link>
       </p>
-      <div>
-        <label htmlFor="username">Username</label>
-        <input name="username" placeholder="Username" required />
-        <div>
-          <label htmlFor="password">Password</label>
-          <Link
-            href="/forgot-password"
-          >
-            Forgot Password?
-          </Link>
+      <div className="form-group">
+        <div className="input-group">
+          <label className="label" htmlFor="username">Username</label>
+          <input 
+            className="input"
+            name="username" 
+            placeholder="Username" 
+            required 
+          />
         </div>
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          required
-        />
-        <SubmitButton pendingText="Signing In..." formAction={signInAction}>
+        <div className="input-group">
+          <div className="label-wrapper">
+            <label className="label" htmlFor="password">Password</label>
+            <Link
+              className="forgot-password"
+              href="/forgot-password"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+          <input
+            className="input"
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+        </div>
+        <SubmitButton className="btn" pendingText="Signing In..." formAction={signInAction}>
           Sign in
         </SubmitButton>
         <FormMessage message={searchParams} />

@@ -88,16 +88,6 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
         }
     }, [inView, hasMore, loading]);
 
-    const formatDate = (dateString: string) => {
-        try {
-            const date = parseISO(dateString);
-            return formatDistanceToNow(date, { addSuffix: true });
-        } catch (error) {
-            console.error('Error formatting date:', error);
-            return 'some time ago';
-        }
-    };
-
     const handleSubmitComment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!userId || !newComment.trim() || isSubmitting) return;
@@ -114,7 +104,7 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
             content: newComment.trim(),
             created_at: currentTime,
             updated_at: currentTime,
-            user: {
+            account: {
                 uid: userId,
                 username: userData?.username || '',
                 display_name: userData?.display_name || '',
@@ -141,7 +131,7 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                 })
                 .select(`
                     *,
-                    user:accounts (
+                    account:accounts (
                         uid,
                         username,
                         display_name,
@@ -215,10 +205,10 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                 {comments.map((comment) => (
                     <div key={comment.id} className="comment">
                         <div className="comment-avatar">
-                            <Link href={`/profile/${comment.user.username}`}>
+                            <Link href={`/profile/${comment.account.username}`}>
                                 <Image 
-                                    src={comment.user.avatar_url || '/img/avatar-default.jpg'} 
-                                    alt={`${comment.user.display_name}'s avatar`}
+                                    src={comment.account.avatar_url || '/img/avatar-default.jpg'} 
+                                    alt={`${comment.account.display_name}'s avatar`}
                                     width={40}
                                     height={40}
                                     className="avatar-image"
@@ -228,16 +218,16 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                         <div className="comment-content">
                             <div className="comment-header">
                                 <Link 
-                                    href={`/profile/${comment.user.username}`}
+                                    href={`/profile/${comment.account.username}`}
                                     className="username"
                                 >
-                                    {comment.user.display_name}
+                                    {comment.account.display_name}
                                 </Link>
                                 <span 
                                     className="timestamp" 
-                                    title={new Date(comment.created_at).toLocaleString()}
+                                    title={formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true })}
                                 >
-                                    {formatDate(comment.created_at)}
+                                    {formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true })}
                                 </span>
                             </div>
                             <p className="comment-text">{comment.content}</p>
@@ -264,7 +254,7 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
             )}
 
             {!loading && comments.length === 0 && (
-                <div className="no-comments">
+                <div className="no-comments information-text">
                     No comments yet. Be the first to comment!
                 </div>
             )}

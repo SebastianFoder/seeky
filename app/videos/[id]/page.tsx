@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata } from 'next';
 import VideoPlayer from '@/components/video-player';
 import { createClient } from '@/utils/supabase/server';
 import { videoService } from '@/services/videoService';
@@ -73,9 +73,18 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
             .from('videos')
             .select(`
                 *,
-                user:user_id (
-                    display_name
-                )
+                account:accounts (
+                        uid,
+                        username,
+                        email,
+                        display_name,
+                        avatar_url,
+                        bio,
+                        role,
+                        status,
+                        created_at,
+                        updated_at
+                    )
             `)
             .eq('id', id)
             .single();
@@ -84,7 +93,16 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
             return <div className="error-message">Video not found.</div>;
         }
 
+        if (video.visibility === 'private' && video.account.uid !== user?.id) {
+            return <div className="error-message">This video is private and you do not have access to it.</div>;
+        }
+
+        if(video.status === 'processing') {
+            return <div className="error-message">This video is still processing. Please try again later.</div>;
+        }
+
         await videoService.incrementViews(supabase, video.id);
+        video.views++;
 
         return (
             <div className="video-container">
@@ -93,9 +111,6 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
                 <div className="comments-container">
                     <VideoComments videoId={video.id} userId={user?.id || ''} />
                 </div>
-                <pre>
-                    {JSON.stringify(video, null, 2)}
-                </pre>
             </div>
         );
     } catch (error) {

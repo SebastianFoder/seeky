@@ -14,8 +14,6 @@ export default async function Index() {
                 filterTags={[]} 
             />
 
-            {user && <pre>{JSON.stringify(user, null, 2)}</pre>}
-
         </div>
     );
 }

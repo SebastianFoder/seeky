@@ -102,16 +102,18 @@ export default function VideoInfo({ video, userId }: VideoInfoProps) {
                     <div className="meta">
                         <p>
                             <User size={16} />
-                            {video.user?.display_name}
+                            {video.account?.display_name || video.account?.username}
                         </p>
                         <p>
                             <Eye size={16} />
                             {video.views.toLocaleString()} views
                         </p>
-                        <p>
-                            <Lock size={16} />
-                            {video.visibility}
-                        </p>
+                        {video.visibility && video.visibility !== 'public' && (
+                            <p>
+                                <Lock size={16} />
+                                {video.visibility.toUpperCase()}
+                            </p>
+                        )}
                     </div>
                     <div className="reactions">
                         <button 

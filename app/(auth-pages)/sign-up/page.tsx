@@ -16,32 +16,40 @@ export default async function Signup(props: {
   }
 
   return (
-    <>
-      <form action={signUpAction}>
-        <h1>Sign up</h1>
-        <p>
-          Already have an account?{" "}
-          <Link className="text-primary font-medium underline" href="/sign-in">
-            Sign in
-          </Link>
-        </p>
-        <div>
-          <label htmlFor="username">Username</label>
-          <input name="username" placeholder="Username" required />
-          <label htmlFor="password">Password</label>
+    <form className="auth-form" action={signUpAction}>
+      <h1 className="title">Sign up</h1>
+      <p className="signup-text">
+        Already have an account?{" "}
+        <Link href="/sign-in">
+          Sign in
+        </Link>
+      </p>
+      <div className="form-group">
+        <div className="input-group">
+          <label className="label" htmlFor="username">Username</label>
+          <input 
+            className="input"
+            name="username" 
+            placeholder="Username" 
+            required 
+          />
+        </div>
+        <div className="input-group">
+          <label className="label" htmlFor="password">Password</label>
           <input
+            className="input"
             type="password"
             name="password"
-            placeholder="Your password"
+            placeholder="Password"
             minLength={6}
             required
           />
-          <SubmitButton formAction={signUpAction} pendingText="Signing up...">
-            Sign up
-          </SubmitButton>
-          <FormMessage message={searchParams} />
         </div>
-      </form>
-    </>
+        <SubmitButton className="btn" formAction={signUpAction} pendingText="Signing up...">
+          Sign up
+        </SubmitButton>
+        <FormMessage message={searchParams} />
+      </div>
+    </form>
   );
 }

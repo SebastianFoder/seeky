@@ -39,12 +39,30 @@
     padding: 2rem;
 }
 
-.video-details h1 {
-    font-size: var(--text-2xl);
-    color: var(--light-primary);
+.video-info h1 {
+    font-size: var(--text-4xl);
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.video-header {
     margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--light-secondary);
+}
+
+.video-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.video-stats .meta{
+    align-items: center;
+}
+
+.video-stats .meta p {
+    margin: 0;
 }
 
 .description {
