@@ -588,6 +588,58 @@ export const videoService = {
     },
 
     /**
+     * Fetch videos associated with a specific account along with account data.
+     * @param supabase - Supabase client instance.
+     * @param accountId - The ID of the account to fetch videos for.
+     * @param pagination - Optional pagination parameters to limit the results.
+     * @returns A paginated response containing an array of Video objects and the total count.
+     */
+    async getVideosByAccountWithAccountId(
+        supabase: SupabaseClient, 
+        accountId: string, 
+        pagination?: PaginationParams
+    ): Promise<PaginatedResponse<Video>> {
+        try {
+            let query = supabase
+                .from('videos')
+                .select(`
+                    *,
+                    account:accounts (
+                        uid,
+                        username,
+                        email,
+                        display_name,
+                        avatar_url,
+                        bio,
+                        role,
+                        status,
+                        created_at,
+                        updated_at
+                    )
+                `, { count: 'exact' })
+                .eq('user_id', accountId);
+
+            // Apply pagination only if both page and limit are provided
+            if (pagination?.page && pagination?.limit) {
+                const start = (pagination.page - 1) * pagination.limit;
+                const end = start + pagination.limit - 1;
+                query = query.range(start, end);
+            }
+
+            const { data, error, count } = await query;
+            if (error) throw error;
+
+            return {
+                data: data as Video[],
+                count: count || 0
+            };
+        } catch (error) {
+            console.error('Error in getVideosByAccountWithAccount:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Get likes and dislikes for a video
      * @param supabase - Supabase client instance
      * @param videoId - The ID of the video to get likes and dislikes for

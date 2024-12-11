@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkPassword, checkUsername } from "./accountChecks";
+import { verifyCaptchaToken } from "@/lib/captcha";
 
 export const signUpAction = async (formData: FormData) => {
   const supabase = await createClient();
@@ -79,6 +80,7 @@ export const signUpAction = async (formData: FormData) => {
 };
 
 export const signInAction = async (formData: FormData) => {
+
   const supabase = await createClient();
   const username = formData.get("username")?.toString();
   const password = formData.get("password") as string;
@@ -98,6 +100,7 @@ export const signInAction = async (formData: FormData) => {
 
   return redirect("/protected");
 };
+
 export const forgotPasswordAction = async (formData: FormData) => {
   const supabase = await createClient();
   const email = formData.get("email")?.toString();

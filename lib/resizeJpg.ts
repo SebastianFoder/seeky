@@ -1,14 +1,20 @@
 /**
  * Options for resizing a JPG image.
  */
-export interface ResizeJpgOptions {
-    path: string;
-    width: number;
-    height: number;
-    placement: 'center' | 'top' | 'bottom';
+
+export interface AvatarOptions {
+    placement: 'top' | 'center' | 'bottom';
     fit: 'cover' | 'contain';
     backgroundColor: string;
 }
+
+export interface ResizeJpgOptions extends AvatarOptions {
+    path: string;
+    width: number;
+    height: number;
+}
+
+
 
 /**
  * Resizes a JPG image using the HTML Canvas API.
@@ -16,7 +22,7 @@ export interface ResizeJpgOptions {
  * @param {ResizeJpgOptions} options - The options for resizing the image.
  * @returns {Promise<Blob>} A promise that resolves to a Blob containing the resized image.
  */
-export async function resizeJpg({ 
+export async function clientResizeJpg({ 
     path, 
     width, 
     height, 
@@ -27,6 +33,7 @@ export async function resizeJpg({
     // Create a promise to handle image loading
     return new Promise<Blob>((resolve, reject) => {
         const img = new Image();
+        img.src = path;
         img.onload = () => {
             // Create canvas
             const canvas = document.createElement('canvas');

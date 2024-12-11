@@ -1,6 +1,7 @@
+import { accountService } from "@/services/accountService";
 import { createClient } from "@/utils/supabase/server";
-import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import UserForm from "./userForm";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -13,11 +14,15 @@ export default async function ProtectedPage() {
     return redirect("/sign-in");
   }
 
+  const account = await accountService.getAccountByUid(supabase, user.id);
+
+  if (!account) {
+    return redirect("/sign-in");
+  }
+
   return (
     <div>
-      <InfoIcon size="16" strokeWidth={2} />
-      This is a protected page that you can only see as an authenticated
-      user
+      <UserForm uid={user.id} />
     </div>
     );
 }

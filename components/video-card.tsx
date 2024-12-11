@@ -98,24 +98,27 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
                 </div>
             </div>
             <div className="content">
-                <h3>{video.title}</h3>
-                <div className="meta">
-                    {video.account.avatar_url && (
-                        <Image
-                            src={video.account.avatar_url}
-                            alt={video.account.display_name}
-                            width={24}
-                            height={24}
-                        />
-                    )}
-                    <span className="account">
-                        {video.account.display_name}
-                    </span>
-                    |
-                    <span className="views">
-                        <Eye size={16} />
-                        {video.views.toLocaleString()}
-                    </span>
+                {video.account.avatar_url && (
+                    <Image
+                        className="avatar"
+                        src={video.account.avatar_url}
+                        alt={video.account.display_name}
+                        width={40}
+                        height={40}
+                    />
+                )}
+                <div className="text-content">
+                    <h3 className="video-title">{video.title}</h3>
+                    <div className="meta">
+                        <span className="account">
+                            {video.account.display_name}
+                        </span>
+                        |
+                        <span className="views">
+                            <Eye size={16} />
+                            {video.views.toLocaleString()}
+                        </span>
+                    </div>
                 </div>
             </div>
         </a>

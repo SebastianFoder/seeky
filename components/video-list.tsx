@@ -10,9 +10,10 @@ import { createClient } from '@/utils/supabase/client';
 interface VideoListProps {
     searchTerm?: string;
     filterTags?: string[];
+    accountId?: string;
 }
 
-export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
+export default function VideoList({ searchTerm, filterTags, accountId }: VideoListProps) {
     const [videos, setVideos] = useState<Video[]>([]);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -26,8 +27,12 @@ export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
             setLoadingMore(!isInitial);
             const supabase = createClient();
             let response;
-            
-            if (searchTerm) {
+            if (accountId) {
+                response = await videoService.getVideosByAccountWithAccountId(supabase, accountId, { 
+                    page: pageNum, 
+                    limit: 12 
+                });
+            } else if (searchTerm) {
                 response = await videoService.searchVideos(supabase, searchTerm, { 
                     page: pageNum, 
                     limit: 12 
@@ -57,8 +62,6 @@ export default function VideoList({ searchTerm, filterTags }: VideoListProps) {
             
             // Check if we've reached the end
             setHasMore(videos.length + filteredVideos.length < response.count);
-
-            console.log(fetchedVideos);
 
             if (isInitial) {
                 setVideos(fetchedVideos);

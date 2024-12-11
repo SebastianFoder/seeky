@@ -1,0 +1,130 @@
+/* Dropdown container */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* Avatar button */
+.avatar-button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.avatar-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+label.avatar{
+    border: 3px solid transparent;
+    transition: all 0.3s ease-in-out;
+}
+
+.dropdown:hover label.avatar, .dropdown-toggle:checked + label.avatar{
+    border-color: var(--primary);
+}
+
+.avatar img {
+    width: auto;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Dropdown menu */
+.dropdown-content {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    min-width: 220px;
+    background-color: var(--dark-secondary);
+    border: 1px solid var(--light-secondary);
+    border-radius: 12px;
+    padding: 0.75rem;
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top right;
+}
+
+/* Checkbox hack */
+.dropdown-toggle {
+    display: none;
+}
+
+/* Show dropdown when checkbox is checked */
+.dropdown-toggle:checked + label + .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Menu items */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--light-primary);
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: var(--text-sm);
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background-color: var(--light-secondary);
+    color: var(--white);
+    padding-left: 1.25rem;
+}
+
+.menu-item:active {
+    transform: scale(0.98);
+}
+
+.menu-item svg {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+    opacity: 0.9;
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background-color: var(--light-secondary);
+    margin: 0.5rem 0;
+    opacity: 0.5;
+}
+
+.signout-menu-form{
+    font-family: inherit;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}

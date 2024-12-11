@@ -5,14 +5,13 @@ import Link from "next/link";
 
 export default async function Login(props: { searchParams: Promise<Message> }) {
   const searchParams = await props.searchParams;
+
   return (
-    <form className="auth-form">
+    <form className="auth-form" action={signInAction}>
       <h1 className="title">Sign in</h1>
       <p className="signup-text">
         Don't have an account?{" "}
-        <Link href="/sign-up">
-          Sign up
-        </Link>
+        <Link href="/sign-up">Sign in</Link>
       </p>
       <div className="form-group">
         <div className="input-group">
@@ -42,7 +41,7 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
             required
           />
         </div>
-        <SubmitButton className="btn" pendingText="Signing In..." formAction={signInAction}>
+        <SubmitButton className="btn" pendingText="Signing In...">
           Sign in
         </SubmitButton>
         <FormMessage message={searchParams} />

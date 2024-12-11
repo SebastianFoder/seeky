@@ -1,5 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Account } from '@/types/account';
+import axios from 'axios';
+import { AvatarOptions } from '@/lib/resizeJpg';
 
 export const accountService = {
     /**
@@ -38,7 +40,7 @@ export const accountService = {
     async updateAccount(
         supabase: SupabaseClient,
         uid: string,
-        updates: Partial<Pick<Account, 'display_name' | 'avatar_url' | 'bio' | 'email'>>
+        updates: Partial<Pick<Account, 'display_name' | 'bio' | 'email'>>
     ): Promise<boolean> {
         try {
             const { error } = await supabase
@@ -55,6 +57,61 @@ export const accountService = {
         } catch (error) {
             console.error('Error in updateAccount:', error);
             return false;
+        }
+    },
+
+    /**
+     * Update the account avatar
+     * @param supabase - Supabase client instance
+     * @param uid - UID of the account to update
+     * @param avatarFile - The new avatar file to upload
+     * @returns The new avatar URL or null if the avatar update was unsuccessful
+     */
+    async updateAccountAvatar(supabase: SupabaseClient, uid: string, avatarFile: File, avatarOptions: AvatarOptions): Promise<string | null> {
+        try {            
+            const options = JSON.stringify(avatarOptions);
+            const res = await axios.post('/api/avatar', { file: avatarFile, options: options }, { headers: { 'Content-Type': 'multipart/form-data' } });
+
+            if (res.status !== 200) {
+                throw new Error('Error uploading avatar');
+            }
+
+            const avatarUrl = res.data.url;
+
+            const { data: user, error: userError } = await supabase
+                .from('accounts')
+                .select('*')
+                .eq('uid', uid)
+                .single();
+
+            if (userError) {
+                throw new Error('Error fetching user');
+            }
+        
+            const curentAvatarName = user?.avatar_url.split('/').pop();
+
+            const { error: updateError } = await supabase
+                .from('accounts')
+                .update({ avatar_url: avatarUrl })
+                .eq('uid', uid);
+
+            if (updateError) {
+                throw new Error('Error updating account avatar');
+            }
+            // Delete old avatar if it's not the default avatar
+            if (curentAvatarName && curentAvatarName !== 'avatar-default.jpg') {
+                const res = await axios.delete(`/api/avatar/${curentAvatarName}`);
+
+                if (res.status !== 200) {
+                    throw new Error('Error deleting avatar');
+                }
+
+            }
+
+            return avatarUrl;
+        } catch (error) {
+            console.error('Error in updateAccountAvatar:', error);
+            return null;
         }
     },
 
