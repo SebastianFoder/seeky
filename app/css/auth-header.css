@@ -43,6 +43,10 @@ label.avatar{
     border-color: var(--primary);
 }
 
+.dropdown form button{
+    font-family: inherit;
+}
+
 .avatar img {
     width: auto;
     height: 100%;

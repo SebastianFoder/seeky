@@ -1,4 +1,4 @@
-import AdminVideos from "./component";
+import ManageVideos from "@/components/ManageVideos";
 import { accountService } from "@/services/accountService";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
@@ -25,5 +25,5 @@ export default async function AdminPage() {
     }
 
 
-    return <AdminVideos />;
+    return <ManageVideos />;
 }

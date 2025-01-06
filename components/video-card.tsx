@@ -69,7 +69,7 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
             <div className="thumbnail-container">
                 <Image
                     src={video.thumbnail_url 
-                        ? video.thumbnail_url
+                        ? `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.thumbnail_url}`
                         : `/img/thumbnail-default.jpg`}
                     alt={video.title} 
                     loading={loading}
@@ -85,7 +85,7 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
                 {previewUrl && (
                     <Image
                         ref={previewRef}
-                        src={previewUrl}
+                        src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${previewUrl}`}
                         alt={`${video.title} preview`}
                         width={320}
                         height={180}
@@ -101,7 +101,7 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
                 {video.account.avatar_url && (
                     <Image
                         className="avatar"
-                        src={video.account.avatar_url}
+                        src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.account.avatar_url}`}
                         alt={video.account.display_name}
                         width={40}
                         height={40}

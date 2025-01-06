@@ -23,7 +23,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { filen
         // Delete from S3
         const command = new DeleteObjectCommand({
             Bucket: process.env.S3_THUMBNAIL_BUCKET_NAME!,
-            Key: fileName,
+            Key: `thumbnails/${fileName}`,
         });
 
         await s3.send(command);

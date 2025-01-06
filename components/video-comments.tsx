@@ -207,7 +207,7 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                         <div className="comment-avatar">
                             <Link href={`/profile/${comment.account.username}`}>
                                 <Image 
-                                    src={comment.account.avatar_url || '/img/avatar-default.jpg'} 
+                                    src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${comment.account.avatar_url}` || '/img/avatar-default.jpg'} 
                                     alt={`${comment.account.display_name}'s avatar`}
                                     width={40}
                                     height={40}

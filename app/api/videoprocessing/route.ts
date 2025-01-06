@@ -167,7 +167,7 @@ async function processVideoVersion(
 
     console.log(`Uploading ${config.resolution} to S3...`);
     const fileContent = fs.readFileSync(outputPath);
-    const fileName = `${videoId}_${config.resolution}_${uuidv4()}.mp4`;
+    const fileName = `videos/${videoId}_${config.resolution}_${uuidv4()}.mp4`;
     
     await s3.send(new PutObjectCommand({
         Bucket: process.env.S3_VIDEO_BUCKET_NAME!,
@@ -176,8 +176,7 @@ async function processVideoVersion(
         ContentType: 'video/mp4',
     }));
     
-    versions[config.resolution] = 
-        `https://${process.env.S3_VIDEO_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+    versions[config.resolution] = fileName;
     
     if (!supabase) {
         supabase = await createClient();

@@ -2,7 +2,8 @@
 
 
 import { Video } from '@/types/video';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import ReactPlayer from 'react-player';
 
 interface NetworkInformation extends EventTarget {
     readonly effectiveType: "slow-2g" | "2g" | "3g" | "4g";
@@ -76,7 +77,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
             const currentTime = videoRef.current.currentTime;
             const isFullScreen = document.fullscreenElement === videoRef.current;
 
-            videoRef.current.src = video.metadata?.versions?.[selectedQuality] || '';
+            videoRef.current.src = `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.metadata?.versions?.[selectedQuality]}`;
             videoRef.current.load();
             videoRef.current.currentTime = currentTime;
             videoRef.current.play();
@@ -106,16 +107,21 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
                     ))}
                 </select>
             </div>
-            <video 
-                ref={videoRef}
-                controls 
-                width="100%" 
-                className="video-player"
-                poster={video.thumbnail_url || undefined}
-            >
-                <source src={video.metadata?.versions?.[selectedQuality] || null} type="video/mp4" />
+            <p>sada</p>
+            <Suspense fallback={<div>Loading video...</div>}>
+                <video 
+                    ref={videoRef}
+                    controls 
+                    autoPlay
+                    width="100%" 
+                    className="video-player"
+                    poster={video.thumbnail_url || undefined}
+                    preload="auto"
+                >
+                <source src={video.metadata?.versions?.[selectedQuality]} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
+            </Suspense>
             
         </div>
     );

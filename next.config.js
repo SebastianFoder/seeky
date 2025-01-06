@@ -4,14 +4,9 @@ const nextConfig = {
         remotePatterns: [
             {
 				protocol: 'https',
-				hostname: 'seeky-thumbnails.s3.*.amazonaws.com',
+				hostname: 'd27xedqsgf2j8l.cloudfront.net',
 				pathname: '/**',
-			},
-            {
-				protocol: 'https',
-				hostname: 'seeky-avatars.s3.*.amazonaws.com',
-				pathname: '/**',
-			},
+			}
         ],
     },
 };

@@ -8,13 +8,14 @@
 @import "./css/video-card-skeleton.css";
 @import "./css/video-list.css";
 @import "./css/video-upload.css";
-@import "./css/admin-videos.css";
+@import "./css/manage-videos.css";
 @import "./css/video.css";
 @import "./css/comments.css";
 @import "./css/search.css";
 @import "./css/auth-pages.css";
 @import "./css/auth-header.css";
 @import "./css/user-form.css";
+@import "./css/dialog.css";
 
 :root {
     --primary: hsl(22, 96%, 50%);

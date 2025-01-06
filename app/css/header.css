@@ -124,18 +124,8 @@ nav ul {
     flex-shrink: 0;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-    .search-container {
-        max-width: none;
-        margin: 0 0.5rem;
-    }
-
-    .search-bar {
-        padding: 0.25rem 0.75rem;
-    }
-
-    .search-bar input {
-        font-size: var(--text-sm);
+@media (max-width: 768px) {
+    .search-container{
+        flex: 0;
     }
 }

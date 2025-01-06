@@ -67,7 +67,7 @@ export const accountService = {
      * @param avatarFile - The new avatar file to upload
      * @returns The new avatar URL or null if the avatar update was unsuccessful
      */
-    async updateAccountAvatar(supabase: SupabaseClient, uid: string, avatarFile: File, avatarOptions: AvatarOptions): Promise<string | null> {
+    async updateAccountAvatar(supabase: SupabaseClient, uid: string, avatarFile: File, avatarOptions: AvatarOptions, avatarUrl?: string): Promise<string | null> {
         try {            
             const options = JSON.stringify(avatarOptions);
             const res = await axios.post('/api/avatar', { file: avatarFile, options: options }, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -76,23 +76,30 @@ export const accountService = {
                 throw new Error('Error uploading avatar');
             }
 
-            const avatarUrl = res.data.url;
+            const newAvatarUrl = res.data.url;
 
-            const { data: user, error: userError } = await supabase
-                .from('accounts')
-                .select('*')
-                .eq('uid', uid)
-                .single();
+            let curentAvatarName;
 
-            if (userError) {
-                throw new Error('Error fetching user');
+            if (avatarUrl) {
+                curentAvatarName = avatarUrl.split('/').pop();
             }
+            else{
+                const { data: user, error: userError } = await supabase
+                    .from('accounts')
+                    .select('*')
+                    .eq('uid', uid)
+                    .single();
+
+                if (userError) {
+                    throw new Error('Error fetching user');
+                }
         
-            const curentAvatarName = user?.avatar_url.split('/').pop();
+                curentAvatarName = user?.avatar_url.split('/').pop();
+            }            
 
             const { error: updateError } = await supabase
                 .from('accounts')
-                .update({ avatar_url: avatarUrl })
+                .update({ avatar_url: newAvatarUrl })
                 .eq('uid', uid);
 
             if (updateError) {
@@ -108,7 +115,7 @@ export const accountService = {
 
             }
 
-            return avatarUrl;
+            return newAvatarUrl;
         } catch (error) {
             console.error('Error in updateAccountAvatar:', error);
             return null;

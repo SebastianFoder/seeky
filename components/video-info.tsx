@@ -102,7 +102,7 @@ export default function VideoInfo({ video, userId }: VideoInfoProps) {
                     <div className="meta">
                         <p>
                             <User size={16} />
-                            {video.account?.display_name || video.account?.username}
+                            {`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.account?.avatar_url}` || 'img/avatar-default.jpg'}
                         </p>
                         <p>
                             <Eye size={16} />

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
         // Generate unique filename
         const fileExtension = 'gif';
-        const fileName = `${Date.now()}.${uuidv4()}.${fileExtension}`;
+        const fileName = `thumbnails/${Date.now()}.${uuidv4()}.${fileExtension}`;
 
         // Convert file to buffer
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -47,10 +47,8 @@ export async function POST(request: NextRequest) {
 
         await s3.send(command);
 
-        // Generate S3 URL
-        const previewUrl = `https://${process.env.S3_THUMBNAIL_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 
-        return NextResponse.json({ url: previewUrl });
+        return NextResponse.json({ url: fileName });
 
     } catch (error) {
         console.error("Error uploading preview:", error);

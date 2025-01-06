@@ -37,11 +37,9 @@ export async function DELETE(
 		const deletePromises: Promise<any>[] = [];
 		if (versions) {
 			for (const quality of Object.keys(versions)) {
-                console.log(quality);
-                console.log(versions[quality].split('/').pop()!)
 				deletePromises.push(s3.send(new DeleteObjectCommand({
 					Bucket: process.env.S3_VIDEO_BUCKET_NAME!,
-					Key: versions[quality].split('/').pop()!, // Extract the file name from the URL
+					Key: versions[quality], // Extract the file name from the URL
 				})));
 			}
 		}

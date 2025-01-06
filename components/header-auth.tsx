@@ -4,7 +4,7 @@ import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { accountService } from "@/services/accountService";
-import { Settings, LogOut, MonitorUp } from "lucide-react";
+import { Settings, LogOut, MonitorUp, MonitorCog } from "lucide-react";
 import { ThemeSwitcher } from "./theme-switcher";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -71,7 +71,7 @@ export default function AuthButton() {
       <label htmlFor="dropdown-toggle" className="avatar">
         <Image
           className="avatar"
-          src={avatarUrl || `/default-avatar.png`}
+          src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${avatarUrl}` || 'img/avatar-default.jpg'}
           alt={account.display_name}
           width={52}
           height={52}
@@ -87,6 +87,11 @@ export default function AuthButton() {
           <Link href="/videos/upload" className="menu-item">
             <MonitorUp />
             Upload
+          </Link>
+          <div className="divider" />
+          <Link href="/protected/video-management" className="menu-item">
+            <MonitorCog />
+            Manage Videos
           </Link>
           <div className="divider" />
           <form className="signout-menu-form" action={signOutAction}>

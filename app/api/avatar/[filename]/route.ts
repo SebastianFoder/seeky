@@ -18,7 +18,7 @@ export async function DELETE(
 
 		const command = new DeleteObjectCommand({
 			Bucket: process.env.S3_AVATARS_BUCKET_NAME!,
-			Key: filename,
+			Key: `avatars/${filename}`,
 		});
 
 		await s3.send(command);

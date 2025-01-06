@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
 		// Generate unique filename
 		const fileExtension = file.name.split(".").pop();
-		const fileName = `${Date.now()}.${uuidv4()}.${fileExtension}`;
+		const fileName = `thumbnails/${Date.now()}.${uuidv4()}.${fileExtension}`;
 
 		// Convert file to buffer
 		const buffer = Buffer.from(await file.arrayBuffer());
@@ -47,10 +47,7 @@ export async function POST(request: Request) {
 
 		await s3.send(command);
 
-		// Generate S3 URL
-		const thumbnailUrl = `https://${process.env.S3_THUMBNAIL_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
-		return NextResponse.json({ url: thumbnailUrl });
+		return NextResponse.json({ url: fileName });
 
 	} catch (error) {
 		console.error("Error uploading thumbnail:", error);

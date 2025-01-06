@@ -1,3 +1,4 @@
+import ManageVideos from "@/components/ManageVideos";
 import VideoList from "@/components/video-list";
 import { accountService } from "@/services/accountService";
 import { createClient } from "@/utils/supabase/server";
@@ -22,7 +23,7 @@ export default async function VideoManagementPage() {
 
     return (
         <div>
-            <VideoList accountId={user.id} />
+            <ManageVideos userId={user.id} />
         </div>
     );
 }

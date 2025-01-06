@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(imageBlob); // Convert ArrayBuffer to Buffer
 
         const fileExtension = "jpg";
-        const fileName = `${Date.now()}.${uuidv4()}.${fileExtension}`;
+        const fileName = `avatars/${Date.now()}.${uuidv4()}.${fileExtension}`;
 
         // Resize options
         const resizeOptions: ResizeJpgOptions = {
@@ -78,9 +78,7 @@ export async function POST(req: Request) {
 
         await s3.send(command);
 
-        const avatarUrl = `https://${process.env.S3_AVATARS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
-        return NextResponse.json({ url: avatarUrl });
+        return NextResponse.json({ url: fileName });
     } catch (error) {
         console.error("Error uploading avatar:", error);
         return NextResponse.json(

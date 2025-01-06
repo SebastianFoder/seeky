@@ -1,5 +1,6 @@
 import { Video } from "@/types/video";
 import { createClient } from "@/utils/supabase/server";
+import { SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,10 +20,7 @@ export async function DELETE(
 			return NextResponse.json({ error: "Video not found" }, { status: 404 });
 		}
 		const deletePromises: Promise<any>[] = [
-			deleteVideoProcessingTicketsFromSupabase(id, supabase),
-			deleteCommentsFromSupabase(id, supabase),
-			deleteReactionsFromSupabase(id, supabase),
-			deleteVideoProcessingFromApi(id),
+			deleteVideoFilesFromApi(id),
 			deletePreviewFromApi(video),
 			deleteThumbnailFromApi(video)
 		];
@@ -41,23 +39,11 @@ export async function DELETE(
 	}
 }
 
-async function deleteVideoFromSupabase(id: string, supabase: any) {
+async function deleteVideoFromSupabase(id: string, supabase: SupabaseClient) {
     await supabase.from('videos').delete().eq('id', id);
 }
 
-async function deleteVideoProcessingTicketsFromSupabase(id: string, supabase: any) {
-    await supabase.from('video_processing_tickets').delete().eq('video_id', id);
-}
-
-async function deleteCommentsFromSupabase(id: string, supabase: any) {
-    await supabase.from('comments').delete().eq('video_id', id);
-}
-
-async function deleteReactionsFromSupabase(id: string, supabase: any) {
-    await supabase.from('reactions').delete().eq('video_id', id);
-}
-
-async function deleteVideoProcessingFromApi(id: string) {
+async function deleteVideoFilesFromApi(id: string) {
     await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/videoprocessing/${id}`);
 }
 

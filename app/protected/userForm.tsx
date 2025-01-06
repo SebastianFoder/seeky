@@ -91,11 +91,11 @@ export default function UserForm({ uid }: UserFormProps) {
     const handleUserAvatarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (account && avatar) {
-            const newAvatarUrl = await accountService.updateAccountAvatar(supabase, account.uid, avatar, avatarOptions);
+
+            const newAvatarUrl = await accountService.updateAccountAvatar(supabase, account.uid, avatar, avatarOptions, avatarUrl || undefined);
             if (newAvatarUrl) {
                 setMessage('Avatar updated successfully');
-                console.log(newAvatarUrl);
-                setAvatarUrl(newAvatarUrl);
+                setAvatarUrl(newAvatarUrl);                
             } else {
                 setMessage('Failed to update avatar');
             }
@@ -163,7 +163,7 @@ export default function UserForm({ uid }: UserFormProps) {
                                 {avatar && avatarResized ? (
                                     <img className="avatar-preview-image" src={URL.createObjectURL(avatarResized)} alt="Avatar Preview" />
                                 ) : (
-                                    <Image className="avatar-preview-image avatar-preview-image-default" width={256} height={256} src={account?.avatar_url || ''} alt="Current Avatar" />
+                                    <Image className="avatar-preview-image avatar-preview-image-default" width={256} height={256} src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${account?.avatar_url}` || ''} alt="Current Avatar" />
                                 )}
                             </div>
                         </div>
