@@ -107,7 +107,6 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
                     ))}
                 </select>
             </div>
-            <p>sada</p>
             <Suspense fallback={<div>Loading video...</div>}>
                 <video 
                     ref={videoRef}
@@ -115,12 +114,12 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
                     autoPlay
                     width="100%" 
                     className="video-player"
-                    poster={video.thumbnail_url || undefined}
+                    poster={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.thumbnail_url}` || undefined}
                     preload="auto"
                 >
-                <source src={video.metadata?.versions?.[selectedQuality]} type="video/mp4" />
-                Your browser does not support the video tag.
-            </video>
+                    <source src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.metadata?.versions?.[selectedQuality]}`} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
             </Suspense>
             
         </div>

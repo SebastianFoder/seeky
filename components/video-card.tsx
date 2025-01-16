@@ -44,7 +44,7 @@ export default function VideoCard({ video, loading = "lazy" }: VideoCardProps) {
 
         if (previewUrl && previewRef.current) {
             hoverTimerRef.current = setTimeout(() => {
-                previewRef.current!.src = previewUrl;
+                previewRef.current!.src = `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${previewUrl}`;
             }, 1000);
         }
     };

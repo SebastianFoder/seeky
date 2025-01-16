@@ -16,6 +16,7 @@
 @import "./css/auth-header.css";
 @import "./css/user-form.css";
 @import "./css/dialog.css";
+@import "./css/playlist-card.css";
 
 :root {
     --primary: hsl(22, 96%, 50%);

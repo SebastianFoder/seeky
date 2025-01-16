@@ -6,6 +6,7 @@ import Script from "next/script";
 
 import { Lexend } from 'next/font/google';
 import { AvatarProvider } from "./context/AvatarContext";
+import { AccountProvider } from "./context/AccountContext";
 
 const lexend = Lexend({
   subsets: ['latin']
@@ -38,9 +39,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AvatarProvider>
-            <Header />
-            <main>{children}</main>
-            <Footer />
+            <AccountProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </AccountProvider>
           </AvatarProvider>
         </ThemeProvider>
       </body>

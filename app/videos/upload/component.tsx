@@ -14,6 +14,7 @@ interface VideoUploadProps {
 export default function VideoUpload({ userId }: VideoUploadProps) {
     const thumbnailWidth = 854;
     const thumbnailHeight = 480;
+    const thumbnailAllowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/bmp', 'image/tiff', 'image/tif', 'image/heic', 'image/heif'];
 
     const router = useRouter();
     const supabase = createClient();
@@ -127,7 +128,7 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
             {
                 width: thumbnailWidth,
                 height: thumbnailHeight,
-                allowedTypes: ['image/jpeg', 'image/jpg']
+                allowedTypes: thumbnailAllowedTypes
             },
             {
                 onComplete: ({ file: scaledFile, dataUrl }) => {
@@ -232,12 +233,12 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                         </div>
                     ))}
                     {customThumbnailPreview ? (
-                        <div className={`thumbnail-option-wrapper ${selectedFrameIndex === 4 ? 'selected' : ''}`} onClick={() => document.getElementById('custom-thumbnail')?.click()}>
+                        <div className={`thumbnail-option-wrapper ${selectedFrameIndex === 4 ? 'selected' : ''}`} onClick={() => document.getElementById('thumbnail')?.click()}>
                             <img style={{cursor: 'pointer'}} src={customThumbnailPreview} alt="Custom Thumbnail" className="custom-thumbnail-preview" />
                             <input 
                                 type="file"
                                 id="thumbnail"
-                                accept=".jpg, .jpeg"
+                                accept={thumbnailAllowedTypes.join(', ')}
                                 onChange={handleCustomThumbnailChange}
                                 style={{ display: 'none' }}
                             />
@@ -252,7 +253,7 @@ export default function VideoUpload({ userId }: VideoUploadProps) {
                                 className="custom-upload-input"
                                 type="file" 
                                 id="thumbnail" 
-                                accept=".jpg, .jpeg" 
+                                accept={thumbnailAllowedTypes.join(', ')} 
                                 onChange={handleCustomThumbnailChange} 
                             />
                         </div>

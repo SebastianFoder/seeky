@@ -10,12 +10,13 @@ export default async function Index() {
     if (!user) {
         return <div>Please login to view your playlists.</div>;
     }
-
-    const playlists = await playlistService.getPlaylistsByUserFromUserId(supabase, user.id);
+    // const showData = await playlistService.getPlaylistById(supabase, '6d091444-dbfa-4718-94e7-3d4f466716cd', user.id);
+    const showData = await playlistService.getPlaylistsByUserFromUserId(supabase, user.id);
+    // const showData = await playlistService.test(supabase);
 
     return (
         <div>
-            <pre>{JSON.stringify(playlists, null, 2)}</pre>
+            <pre>{JSON.stringify(showData, null, 2)}</pre>
             <h1>Video Gallery</h1>
             {/* <VideoList
                 searchTerm="" 

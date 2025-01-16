@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { AvatarOptions, clientResizeJpg } from '@/lib/resizeJpg';
 import { useAvatar } from '../context/AvatarContext';
+import { useAccount } from '../context/AccountContext';
 
 interface UserFormProps {
     uid: string; // User ID
@@ -14,7 +15,8 @@ interface UserFormProps {
 
 export default function UserForm({ uid }: UserFormProps) {
     const { avatarUrl, setAvatarUrl } = useAvatar();
-    const [account, setAccount] = useState<Account | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const { account, refetchAccount } = useAccount();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState<Partial<Account>>({});
@@ -46,14 +48,12 @@ export default function UserForm({ uid }: UserFormProps) {
             }
             resizeAvatar();
         }
-    }, [avatar, avatarOptions]);
+    }, [avatar, avatarOptions, account]);
 
     useEffect(() => {
         const fetchAccount = async () => {
             try {
-                const fetchedAccount = await accountService.getAccountByUid(supabase, uid);
-                setAccount(fetchedAccount);
-                setFormData(fetchedAccount || {});
+                setFormData(account || {});
             } catch (err) {
                 setError('Failed to fetch account details');
             } finally {
@@ -62,7 +62,7 @@ export default function UserForm({ uid }: UserFormProps) {
         };
 
         fetchAccount();
-    }, [uid]);
+    }, [uid, account]);
 
     useEffect(() => {
         if (message) {
@@ -70,6 +70,13 @@ export default function UserForm({ uid }: UserFormProps) {
             return () => clearTimeout(timer);
         }
     }, [message]);
+
+    useEffect(() => {
+        if(!isInitialized){
+            refetchAccount();
+            setIsInitialized(true);
+        }
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;

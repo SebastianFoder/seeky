@@ -168,7 +168,7 @@ export default function VideoComments({ videoId, userId }: VideoCommentsProps) {
                 <form onSubmit={handleSubmitComment} className="comment-form">
                     <div className="comment-input-container">
                         <Image 
-                            src={userData?.avatar_url || '/img/avatar-default.jpg'}
+                            src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${userData?.avatar_url}` || '/img/avatar-default.jpg'}
                             alt="Your avatar"
                             width={40}
                             height={40}

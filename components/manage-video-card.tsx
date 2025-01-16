@@ -21,7 +21,7 @@ export default function ManageVideoCard({ video, loading = "lazy", onDelete }: M
                 <Image
                     src={video.thumbnail_url 
                         ? `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.thumbnail_url}`
-                        : `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/thumbnails/thumbnail-default.jpg`}
+                        : `/img/thumbnail-default.jpg`}
                     alt={video.title} 
                     loading={loading}
                     width={320}
@@ -45,7 +45,7 @@ export default function ManageVideoCard({ video, loading = "lazy", onDelete }: M
                 {video.account.avatar_url && (
                     <Image
                         className="avatar"
-                        src={video.account.avatar_url}
+                        src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${video.account.avatar_url}`}
                         alt={video.account.display_name}
                         width={40}
                         height={40}

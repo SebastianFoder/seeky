@@ -21,8 +21,7 @@ export default async function ProtectedPage() {
   }
 
   return (
-    <div>
-      <UserForm uid={user.id} />
-    </div>
+    <UserForm uid={user.id} />
+
     );
 }

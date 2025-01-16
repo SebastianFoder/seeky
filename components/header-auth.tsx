@@ -2,19 +2,16 @@
 
 import { signOutAction } from "@/app/actions";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
-import { accountService } from "@/services/accountService";
-import { Settings, LogOut, MonitorUp, MonitorCog } from "lucide-react";
+import { Settings, LogOut, MonitorUp, MonitorCog, ListVideo } from "lucide-react";
 import { ThemeSwitcher } from "./theme-switcher";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Account } from "@/types/account";
 import { useAvatar } from "@/app/context/AvatarContext";
+import { useAccount } from "@/app/context/AccountContext";
 
 export default function AuthButton() {
   const { avatarUrl, setAvatarUrl } = useAvatar();
-  const supabase = createClient();
-  const [account, setAccount] = useState<Account | null>(null);
+  const { account, refetchAccount } = useAccount();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,17 +28,6 @@ export default function AuthButton() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: {session} } = await supabase.auth.getSession();
-      if(session?.user){
-        const account = await accountService.getAccountByUid(supabase, session.user.id);
-        setAccount(account);
-      }
-    };
-    fetchUser();
   }, []);
 
   useEffect(() => {
@@ -71,7 +57,7 @@ export default function AuthButton() {
       <label htmlFor="dropdown-toggle" className="avatar">
         <Image
           className="avatar"
-          src={`${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${avatarUrl}` || 'img/avatar-default.jpg'}
+          src={avatarUrl ? `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/${avatarUrl}` : `${process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_DOMAIN}/avatars/avatar-default.jpg`}
           alt={account.display_name}
           width={52}
           height={52}
@@ -92,6 +78,11 @@ export default function AuthButton() {
           <Link href="/protected/video-management" className="menu-item">
             <MonitorCog />
             Manage Videos
+          </Link>
+          <div className="divider" />
+          <Link href="/protected/playlists" className="menu-item">
+            <ListVideo />
+            My Playlists
           </Link>
           <div className="divider" />
           <form className="signout-menu-form" action={signOutAction}>

@@ -54,11 +54,8 @@ export const signUpAction = async (formData: FormData) => {
           {
             uid: userId, // Primary key referencing auth.users.id
             username: username,
-            // Optional fields can be omitted or set to null
             email: `${username}@example.com`, // Placeholder or can be updated later
             display_name: username, // Default to username; can be updated later
-            avatar_url: null,
-            bio: null,
             role: "user", // Default role
             status: "active", // Default status
           },

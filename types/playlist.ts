@@ -1,4 +1,5 @@
 import { Video, VideoVisibility } from "@/types/video";
+import { Account } from "@/types/account";
 
 export interface Playlist {
     id: string;
@@ -6,5 +7,10 @@ export interface Playlist {
     title: string;
     thumbnail_url: string;
     visibility: VideoVisibility;
-    videos: Video[];
+    user_id: string;  // Added to match database structure
+    account: Account;
+    videos: {
+        addedAt: string;
+        video: Video;
+    }[];
 }
